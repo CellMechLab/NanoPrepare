@@ -205,9 +205,11 @@ class NanoWindow(QtWidgets.QMainWindow):
         progress.setValue(len(self.experiment.haystack))
         QtWidgets.QApplication.restoreOverrideCursor()
 
-        self.ui.springconstant.setValue(exp[0].cantilever_k)
-        self.ui.tipradius.setValue(int(exp[0].tip_radius))
-        if exp[0].tip_shape == 'sphere':
+        ref = exp.haystack[0]
+
+        self.ui.springconstant.setValue(ref.cantilever_k)
+        self.ui.tipradius.setValue(int(ref.tip_radius))
+        if ref.tip_shape == 'sphere':
             self.ui.geometry.setCurrentIndex(1)
         elif exp.tip_shape == 'cylinder':
             self.ui.geometry.setCurrentIndex(2)
