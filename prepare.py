@@ -122,7 +122,7 @@ class NanoWindow(QtWidgets.QMainWindow):
         handlers.append(self.data_changed)
 
         cli = [self.ui.toggle_activated,
-               self.ui.toggle_excluded, self.ui.toggle_activated]
+               self.ui.toggle_excluded]
         for click in cli:
             slots.append(click.clicked)
             handlers.append(self.toggle)
@@ -185,9 +185,8 @@ class NanoWindow(QtWidgets.QMainWindow):
             node.myTree = myself
             myself.setText(0, node.basename)
             myself.curve = node
-            myself.setFlags(
-                myself.flags() | QtCore.Qt.ItemIsTristate | QtCore.Qt.ItemIsUserCheckable)
-            myself.setCheckState(0, QtCore.Qt.Checked)
+            #myself.setFlags(myself.flags() | QtCore.Qt.ItemIsTristate | QtCore.Qt.ItemIsUserCheckable)
+            #myself.setCheckState(0, QtCore.Qt.Checked)
             for mychild in node:
                 attach(mychild, myself)
         for node in self.experiment:
