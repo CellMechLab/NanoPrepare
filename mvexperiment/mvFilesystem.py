@@ -7,7 +7,6 @@ from .pathto import Path as ppath
 
 #from .zippo import Path as zpath
 
-
 class MvNode(mvObject.MvObject):
     _leaf_ext = ['.png']
 

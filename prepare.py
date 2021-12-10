@@ -163,8 +163,8 @@ class NanoWindow(QtWidgets.QMainWindow):
             exp = experiment.NanoSurf(fname)
         elif 'TSV' in quale:
             exp = experiment.Easytsv(fname)
-        # elif self.ui.jpk_open.isChecked() is True:
-            #exp = experiment.Jpk(fname)
+        elif 'jpk-force' in quale:
+            exp = experiment.Jpk(fname)
 
         exp.browse()
         if len(exp) == 0:

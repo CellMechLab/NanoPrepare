@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1018</width>
-    <height>810</height>
+    <height>782</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,6 +26,11 @@
         <item>
          <property name="text">
           <string>Optics11 NEW</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>jpk-force</string>
          </property>
         </item>
         <item>
@@ -49,6 +54,7 @@
        <widget class="QPushButton" name="open_selectfolder">
         <property name="font">
          <font>
+          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -64,6 +70,7 @@
        <widget class="QPushButton" name="save">
         <property name="font">
          <font>
+          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -102,6 +109,7 @@
         </property>
         <property name="font">
          <font>
+          <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
