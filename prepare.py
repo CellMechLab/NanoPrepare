@@ -155,10 +155,13 @@ class NanoWindow(QtWidgets.QMainWindow):
         exp = None
         quale = self.ui.c_open.currentText()
         if 'Optics11' in quale:
-            if 'NEW' in quale:
-                exp = experiment.Chiaro(fname)
-            else:
+            if '2019' in quale:
+                exp = experiment.Chiaro2019(fname)
+            elif 'OLD' in quale:
                 exp = experiment.ChiaroGenova(fname)
+            else:
+                exp = experiment.Chiaro(fname)
+
         elif 'Nanosurf' in quale:
             exp = experiment.NanoSurf(fname)
         elif 'TSV' in quale:

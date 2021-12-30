@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import savgol_filter,find_peaks
 import afmformats
 
 from .curve import (MODE_DIRECTION_BACKWARD, MODE_DIRECTION_FORWARD,
@@ -78,6 +79,8 @@ def cross(x1, x2, th, dth):
         return True
     return False
 
+def toFloat(val):
+    return float(val.replace(',', '.'))
 
 class ChiaroBase(DataSet):
 
@@ -89,61 +92,84 @@ class ChiaroBase(DataSet):
             return True
         return False
 
+    def getTarget(self,line,target):
+        init = len(target)
+        if line[init]==':':
+            init+=1
+        value = line[init:].strip()
+        return value
+
     def header(self):
         f = open(self.filename)
+
+        self.O11={'device':'Chiaro','version':'old'}
+
         targets = ['Tip radius (um)', 'Calibration factor', 'k (N/m)', 'SMDuration (s)',
-                   'Piezo Indentation Sweep Settings', 'Profile:', 'E[eff] (Pa)', 'X-position (um)', 'Y-position (um)',
-                   'Software version','Time (s)','Measurement','Loading / unloading time (s)','Depth (nm)']
-        reading_protocol = False
+                   'Profile:', 'E[eff] (Pa)', 'X-position (um)', 'Y-position (um)',
+                   'Software version','Time (s)','Measurement','Loading / unloading time (s)','Depth (nm)',
+                   'Z-position (um)','Z surface (um)','Piezo position (nm) (Measured)', 'Calibration factor',
+                   'Device', 'Software version','Control mode','Measurement']
+
+        startprotocol = ['Profile','Piezo Indentation Sweep Settings']
+
+        #Reading header    
         self.version = 'old'
-        self.DMA = False
+
         for line in f:
-            if reading_protocol is False or self.DMA is True:
-                if line[0:len(targets[0])] == targets[0]:
-                    self.tip_radius = float(line.strip().replace(',', '.').split('\t')[
-                                            1])*1000.0  # NB: internal units are nm
-                elif line[0:len(targets[1])] == targets[1]:
-                    self.cantilever_lever = float(line.strip().replace(',', '.').split('\t')[
-                                                  1])  # NB: so called geometric factor
-                elif line[0:len(targets[2])] == targets[2]:
-                    self.cantilever_k = float(
-                        line.strip().replace(',', '.').split('\t')[1])
-                elif line[0:len(targets[3])] == targets[3]:
-                    delay = float(line.strip().replace(',', '.')[len(targets[3]):])
-                    self.protocol.append([0, delay])
-                elif line[0:len(targets[12])] == targets[12]:
-                    cv_time = float(line.strip().replace(',', '.')[len(targets[12]):])
-                    self.protocol.append([cv_depth, cv_time])
-                elif line[0:len(targets[13])] == targets[13]:
-                    cv_depth = float(line.strip().replace(',', '.')[len(targets[13]):])
-                elif line[0:len(targets[6])] == targets[6]:
-                    # saved in Pa, internally in GPa; this is Eeff (i.e. including 1-\nu^2)
-                    self.youngProvided = float(
-                        line.strip().replace(',', '.').split('\t')[1])/1.0e9
-                elif line[0:len(targets[7])] == targets[7]:
-                    self.xpos = float(
-                        line[len(targets[7]):].strip().replace(',', '.'))
-                elif line[0:len(targets[8])] == targets[8]:
-                    self.ypos = float(
-                        line[len(targets[8]):].strip().replace(',', '.'))
-                elif line[0:len(targets[5])] == targets[5]:
-                    reading_protocol = True
-                elif line[0:len(targets[4])] == targets[4]:
-                    reading_protocol = True
-                elif line[0:len(targets[9])] == targets[9]:
-                    self.version = line[len(targets[9])+1:].strip()
-                elif line[0:len(targets[11])] == targets[11]:
-                    meas = line[len(targets[11])+1:].strip()
-                    if meas == 'DMA':
-                        self.DMA = True
-                elif line[0:len(targets[10])] == targets[10]:
+            starting = False
+            for start in startprotocol:
+                if start in line:
+                    starting = True
                     break
-            else:
-                if line.strip() == '':
-                    reading_protocol = False
-                else:
-                    slices = line.strip().replace(',', '.').split('\t')
-                    self.protocol.append([float(slices[1]), float(slices[3])])
+            if starting is True:
+                break
+            targeted = False
+            for target in targets:
+                if target in line:
+                    targeted = True
+                    break
+            if targeted is True:
+                value = self.getTarget(line,target)
+                if target=='Tip radius (um)':
+                    self.tip_radius = toFloat(value)*1000.0  # NB: internal units are nm
+                elif target == 'k (N/m)':
+                    self.cantilever_k = toFloat(value)
+                elif target =='Calibration factor':
+                    self.cantilever_lever = toFloat(value)  # NB: so called geometric factor
+                elif target=='E[eff] (Pa)':
+                    # saved in Pa, internally in GPa; this is Eeff (i.e. including 1-\nu^2)
+                    self.youngProvided = toFloat(value)/1.0e9
+                elif target=='X-position (um)':
+                    self.xpos = toFloat(value)
+                elif target=='Y-position (um)':
+                    self.ypos = toFloat(value)
+                elif target=='Software version':
+                    self.O11['version'] = value
+                elif target=='Measurement':
+                    self.O11['measurement'] = value
+                elif target=='Z-position (um)':
+                    self.O11['zpos'] = toFloat(value)
+                elif target=='Z surface (um)':
+                    self.O11['zsurf'] = toFloat(value)
+                elif target=='Piezo position (nm) (Measured)':
+                    self.O11['piezopos'] = toFloat(value)
+                elif target=='Device':
+                    self.O11['device'] = value
+                elif target=='Control mode':
+                    #Control mode: Displacement
+                    #Control mode: Indentation
+                    #Control mode: Load
+                    #Control mode: Peak Load Poking
+                    self.O11['mode'] = value
+
+        for line in f:
+            if line.strip() == '':
+                break      
+            slices = line.strip().replace(',', '.').split('\t')
+            num1 = float(slices[1])
+            num2 = float(slices[3])
+            self.protocol.append([float(slices[1]), float(slices[3])])
+
         f.close()
 
     def load(self):
@@ -160,7 +186,7 @@ class ChiaroBase(DataSet):
                 # Time (s)	Load (uN)	Indentation (nm)	Cantilever (nm)	Piezo (nm)	Auxiliary
                 # skip 2 = indentation and #5 auxiliary if present
                 data.append([float(line[0]), float(line[1]),
-                             float(line[3]), float(line[4])])
+                             float(line[3]), float(line[4]),float(line[2])])
         f.close()
         data = np.array(data)
 
@@ -168,6 +194,7 @@ class ChiaroBase(DataSet):
         self.data['force'] = data[:, 1]*1000.0
         self.data['deflection'] = data[:, 2]
         self.data['z'] = data[:, 3]
+        self.data['indentation'] = data[:, 4]
 
     def toggleIndCal(self, value=False):
         for c in self:
@@ -175,8 +202,68 @@ class ChiaroBase(DataSet):
                 for s in c.haystack:
                     s.active = value
 
-
 class Chiaro(ChiaroBase):
+
+    def createSegments(self):
+        if self.O11['version'] == 'old':
+            return self.createSegments2019()
+        nodi=[]
+        nodi.append(0)
+        time= self.data['time']
+        if self.O11['mode'] == 'Indentation':
+            signal = self.data['indentation']
+        elif self.O11['mode']=='Load':
+            signal = self.data['force']
+        else:
+            signal = self.data['z']
+        dy = np.abs(savgol_filter(signal,101,2,2))
+        for th in range(95,100):
+            threshold = np.percentile(dy,th)
+            changes = find_peaks(dy,threshold)
+            if len(changes[0])<10:
+                break
+        for dtime in changes[0]:
+            nodi.append( dtime )
+        nodi.append(len(self.data['z'])-1)
+        for i in range(len(nodi) - 1):
+            if (nodi[i+1]-nodi[i])<2:
+                continue
+            z = self.data['z'][nodi[i]:nodi[i + 1]]
+            f = self.data['force'][nodi[i]:nodi[i + 1]]
+            t = self.data['time'][nodi[i]:nodi[i + 1]]
+            self.append(Segment(self, z, f))
+            beg = int(len(z) / 3)
+            end = int(2 * len(z) / 3)
+            # for future reference maybe worth adding a fit ?
+            self[-1].speed = (z[end] - z[beg]) / (t[end] - t[beg])
+
+    def createSegments2019(self, bias=30):        
+        actualPos = 2
+        nodi = []
+        nodi.append(0)
+        wait = 0
+        for nextThreshold, nextTime in self.protocol:
+            for j in range(actualPos, len(self.data['z'])):
+                if self.data['time'][j] > wait + nextTime:
+                    if self.version != 'old' or  (cross(self.data['z'][j], self.data['z'][j-1], nextThreshold, bias)) is True:
+                        nodi.append(j)
+                        wait = self.data['time'][j]
+                        break
+            actualPos = j
+        nodi.append(len(self.data['z'])-1)
+        self.nodi = nodi
+        for i in range(len(nodi) - 1):
+            z = self.data['z'][nodi[i]:nodi[i + 1]]
+            f = self.data['force'][nodi[i]:nodi[i + 1]]
+            t = self.data['time'][nodi[i]:nodi[i + 1]]
+            self.append(Segment(self, z, f))
+            beg = int(len(z) / 3)
+            end = int(2 * len(z) / 3)
+            # for future reference maybe worth adding a fit ?
+            self[-1].speed = (z[end] - z[beg]) / (t[end] - t[beg])
+
+
+class Chiaro2019(ChiaroBase):
 
     def createSegments(self, bias=30):        
         sign = +1

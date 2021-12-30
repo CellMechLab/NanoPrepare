@@ -25,7 +25,7 @@
        <widget class="QComboBox" name="c_open">
         <item>
          <property name="text">
-          <string>Optics11 NEW</string>
+          <string>Optics11</string>
          </property>
         </item>
         <item>
@@ -33,6 +33,12 @@
           <string>jpk-force</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Optics11 2019</string>
+         </property>
+        </item>
+        <item>
         <item>
          <property name="text">
           <string>Optics11 OLD</string>

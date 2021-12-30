@@ -229,8 +229,9 @@ class Ui_radius(object):
     def retranslateUi(self, radius):
         _translate = QtCore.QCoreApplication.translate
         radius.setWindowTitle(_translate("radius", "Nano2021"))
-        self.c_open.setItemText(0, _translate("radius", "Optics11 NEW"))
+        self.c_open.setItemText(0, _translate("radius", "Optics11"))
         self.c_open.setItemText(1, _translate("radius", "jpk-force"))
+        self.c_open.setItemText(2, _translate("radius", "Optics11 2019"))
         self.c_open.setItemText(2, _translate("radius", "Optics11 OLD"))
         self.c_open.setItemText(3, _translate("radius", "Nanosurf export"))
         self.c_open.setItemText(4, _translate("radius", "Easy TSV"))
