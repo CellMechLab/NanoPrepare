@@ -514,16 +514,16 @@ class Jpk(DataSet):
     def load(self):
         f = afmformats.load_data(self.filename)
         # inspect the columns
-        print(f[0].columns)
+        # print(f[0].columns)
 
         fd = afmformats.mod_force_distance.AFMForceDistance(
             f[0]._raw_data, f[0].metadata, diskcache=False)
 
         self.data['force'] = [fd.appr['force']*1e9, fd.retr['force']*1e9]
         self.data['z'] = [
-            np.flip(fd.appr['height (piezo)']*1e9), np.flip(fd.retr['height (piezo)']*1e9)]
+            -1.0*(fd.appr['height (piezo)']*1e9), -1.0*(fd.retr['height (piezo)']*1e9)] #flip z
         metadata = fd.metadata
-        print(fd.metadata)
+        # print(fd.metadata)
         self.cantilever_k = metadata['spring constant']
         self.tip_radius = 1.0  #nm (user input)
 
