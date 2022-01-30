@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1018</width>
-    <height>782</height>
+    <height>726</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,6 +26,11 @@
         <item>
          <property name="text">
           <string>Optics11</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>jpk-fmap</string>
          </property>
         </item>
         <item>

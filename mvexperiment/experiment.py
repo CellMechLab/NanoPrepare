@@ -532,3 +532,31 @@ class Jpk(DataSet):
         for i in range(len(segment)+1):
             self.append(Segment(self, self.data['z'], self.data['force']))
             self[i].setData(self.data['z'][i-1], self.data['force'][i-1])
+
+class JpkForceMap(DataSet):
+    _leaf_ext = ['.jpk-force-map']
+
+    def check(self):
+        return True
+    
+    def load(self):
+        f= afmformats.load_data(self.filename)
+        fd = afmformats.mod_force_distance.AFMForceDistance(
+            f[0]._raw_data, f[0].metadata, diskcache=False)
+
+        self.data['force'] = [fd.appr['force']*1e9, fd.retr['force']*1e9]
+        self.data['z'] = [
+            -1.0*(fd.appr['height (piezo)']*1e9), -1.0*(fd.retr['height (piezo)']*1e9)] #flip z
+        metadata = fd.metadata
+        # print(fd.metadata)
+        self.cantilever_k = metadata['spring constant']
+        self.tip_radius = 1.0  #nm (user input)
+
+    def createSegments(self):
+        segment = ['forward', 'backward']
+        for i in range(len(segment)+1):
+            self.append(Segment(self, self.data['z'], self.data['force']))
+            self[i].setData(self.data['z'][i-1], self.data['force'][i-1])
+
+
+

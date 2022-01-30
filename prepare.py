@@ -161,14 +161,15 @@ class NanoWindow(QtWidgets.QMainWindow):
                 exp = experiment.ChiaroGenova(fname)
             else:
                 exp = experiment.Chiaro(fname)
-
         elif 'Nanosurf' in quale:
             exp = experiment.NanoSurf(fname)
         elif 'TSV' in quale:
             exp = experiment.Easytsv(fname)
         elif 'jpk-force' in quale:
             exp = experiment.Jpk(fname)
-
+        elif 'jpk-fmap' in quale:
+            exp = experiment.JpkForceMap(fname)
+            
         exp.browse()
         if len(exp) == 0:
             QtWidgets.QApplication.restoreOverrideCursor()
