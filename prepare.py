@@ -9,6 +9,13 @@ import preparation.prepare_view as view
 
 import protocols.screening
 
+tips = {
+    'sphere':{'geometry':'sphere','parameter':'Radius','unit':'nm'},
+    'cylinder':{'geometry':'cylinder','parameter':'Radius','unit':'nm'},
+    'cone':{'geometry':'cone','parameter':'Angle','unit':'deg'},
+    'pyramid':{'geometry':'pyramid','parameter':'Angle','unit':'deg'},
+    'other':{'geometry':'other','parameter':'Unknown','unit':'au'}
+}
 
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
@@ -82,6 +89,7 @@ class NanoWindow(QtWidgets.QMainWindow):
             self.ui.cScreen.addItem(l)
         self.ui.cScreen.currentIndexChanged.connect(self.screenSelected)
         self.ui.tabScreen.tabCloseRequested.connect(self.removeScreen)
+        self.ui.geometry.currentIndexChanged.connect(self.geomlabel)
 
         # connect load and open, other connections after load/open
         self.ui.open_selectfolder.clicked.connect(self.open_folder)
@@ -103,6 +111,28 @@ class NanoWindow(QtWidgets.QMainWindow):
             item.nano.included = included
         except AttributeError:
             pass
+
+    def getCurrentTip(self):
+        text = str(self.ui.geometry.currentText()).lower()      
+        for idtip in tips:
+            tip=tips[idtip]
+            if tip['geometry'] == text:
+                return tip
+        return None
+
+    def getIndexGeometry(self,tip):
+        for count in range(self.ui.geometry.count()):
+            text = str(self.ui.geometry.itemText(count)).lower()      
+            if tip['geometry'] == text:
+                return count
+
+
+    def geomlabel(self):
+        tip = self.getCurrentTip()
+        if tip is None:
+            self.ui.geometry_label.setText('None')
+        else:
+            self.ui.geometry_label.setText(tip['parameter']+' [' + tip['unit'] + ']')
 
     # connecting all GUI events (signals) to respective slots (functions)
     def connect_all(self, connect=True):
@@ -212,11 +242,12 @@ class NanoWindow(QtWidgets.QMainWindow):
 
         self.ui.springconstant.setValue(ref.cantilever_k)
         self.ui.tipradius.setValue(int(ref.tip_radius))
-        if ref.tip_shape == 'sphere':
-            self.ui.geometry.setCurrentIndex(1)
-        elif exp.tip_shape == 'cylinder':
-            self.ui.geometry.setCurrentIndex(2)
-              # onest shapes are 'sphere' , 'cone' , 'flat'
+
+        for tip in tips.values():
+            if ref.tip_shape == tip['geometry']:
+                indextip = self.getIndexGeometry(tip)
+                self.ui.geometry.setCurrentIndex(indextip)
+                self.ui.geometry.setEnabled(False)
 
         self.ui.curve_segment.setMaximum(len(self.experiment.haystack[0])-1)
         if len(self.experiment.haystack[0]) > 1:

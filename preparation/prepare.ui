@@ -64,7 +64,6 @@
        <widget class="QPushButton" name="open_selectfolder">
         <property name="font">
          <font>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -80,7 +79,6 @@
        <widget class="QPushButton" name="save">
         <property name="font">
          <font>
-          <weight>75</weight>
           <bold>true</bold>
          </font>
         </property>
@@ -119,7 +117,6 @@
         </property>
         <property name="font">
          <font>
-          <weight>50</weight>
           <italic>false</italic>
           <bold>false</bold>
          </font>
@@ -256,7 +253,7 @@
                <item row="1" column="1">
                 <widget class="QComboBox" name="geometry">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <item>
                   <property name="text">
@@ -273,10 +270,25 @@
                    <string>Cylinder</string>
                   </property>
                  </item>
+                 <item>
+                  <property name="text">
+                   <string>Cone</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Pyramid</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Other</string>
+                  </property>
+                 </item>
                 </widget>
                </item>
                <item row="2" column="0">
-                <widget class="QLabel" name="label">
+                <widget class="QLabel" name="geometry_label">
                  <property name="text">
                   <string>Tip Radius [nm]</string>
                  </property>

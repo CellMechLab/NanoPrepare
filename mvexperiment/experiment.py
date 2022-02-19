@@ -18,8 +18,8 @@ class DataSet(MvNode):
         self.cantilever_type = 'Colloidal probe'
         # the name of the file the text output was created from
         self.original_filename = None
-        self.tip_radius = 1000.0  # radius of the tip, used for sphere, in nm
-        self.tip_shape = 'sphere'  # onest shapes are 'sphere' , 'cone' , 'flat'
+        self.tip_radius = 1000.0  # radius of the tip, used for sphere, in nm, or angle in deg
+        self.tip_shape = None  # onest shapes are 'sphere' , 'cone' , 'cylinder', 'pyramid'
         # store for the full time tracks, add additional channels
         self.data = {'time': [], 'force': [], 'deflection': [], 'z': []}
         self.protocol = []  # a list of protsegments parameters
@@ -101,6 +101,7 @@ class ChiaroBase(DataSet):
         return value
 
     def header(self):
+        self.tip_shape = 'sphere'
         f = open(self.filename)
 
         self.O11={'device':'Chiaro','version':'old'}
