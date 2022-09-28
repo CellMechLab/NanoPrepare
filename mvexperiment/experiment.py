@@ -227,6 +227,16 @@ class Chiaro(ChiaroBase):
         for dtime in changes[0]:
             nodi.append( dtime )
         nodi.append(len(self.data['z'])-1)
+        
+        if len(nodi)>len(self.protocol)+2:
+            #go safe mode
+            nodi = [] 
+            nodi.append(0)
+            curtime = 0
+            for seg in self.protocol:
+                curtime += seg[1]
+                nodi.append( np.argmin((self.data['time']-curtime)**2) )        
+        
         for i in range(len(nodi) - 1):
             if (nodi[i+1]-nodi[i])<2:
                 continue
