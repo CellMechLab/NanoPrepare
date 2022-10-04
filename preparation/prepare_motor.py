@@ -9,9 +9,6 @@ ST_BLU = 2
 ST_BLK = 3
 
 # Function checking if two arrays are the same
-
-
-
 def sames(ar1, ar2):
     if (ar1 is None) or (ar2 is None):
         return False
@@ -22,8 +19,6 @@ def sames(ar1, ar2):
     if np.sum(ar1-ar2) == 0:  # returns true if each element of ar1 is the same as that in ar2
         return True
     return False
-
-# Hertz model with poisson 0.5 (incompressible material)
 
 
 class Nanoment():
@@ -44,13 +39,14 @@ class Nanoment():
         self._selected = False
         self._tree = None
         self._ui = None
+        self._rawdata = None
         if curve is not None:
             self.R = curve.tip_radius
             self.k = curve.cantilever_k
             self.basename = curve.basename
+            self._rawdata = curve.data
 
     # Methods
-
     def connect(self, nanowin, node=False):
         self._ui = nanowin.ui
         # Plot F(z)
@@ -74,7 +70,6 @@ class Nanoment():
 
     def disconnect(self):
         self._g_fdistance = None
-
         self._tree = None
         self._ui = None
         self._curve_single = None
@@ -122,6 +117,7 @@ class Nanoment():
         self._active = True
         self.z_raw = x
         self.f_raw = y
+
 
     @ property
     def selected(self):

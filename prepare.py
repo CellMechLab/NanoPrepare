@@ -35,6 +35,8 @@ def emptyCurve():
         "data":{
             "F":[],
             "Z":[]
+        },
+        "raw_data":{
         }
     }
     return curve
@@ -386,6 +388,7 @@ class NanoWindow(QtWidgets.QMainWindow):
                 cv['spring_constant']=spring
                 cv['data']['Z']=list(c._z*1e-9)
                 cv['data']['F']=list(c._f*1e-9)
+                cv['raw_data'] = {'raw_time':list(c._rawdata['time']),"raw_force":list(c._rawdata['force'])} #raw stress relaxation data
                 curves.append(cv)
         exp = {'Description':'Optics11 data'}
         pro = {}
