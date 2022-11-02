@@ -384,7 +384,8 @@ class NanoWindow(QtWidgets.QMainWindow):
                 cv['tip']['radius']=radius*1e-9
                 cv['tip']['geometry']=geometry
                 cv['spring_constant']=spring
-                cv['data']['Z']=list(c._z*1e-9)
+                cv['position']=(c.xpos,c.ypos)
+                cv['data']['Z']=list(c._z*1e-9)                
                 cv['data']['F']=list(c._f*1e-9)
                 curves.append(cv)
         exp = {'Description':'Optics11 data'}

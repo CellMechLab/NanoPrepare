@@ -48,6 +48,7 @@ class Nanoment():
             self.R = curve.tip_radius
             self.k = curve.cantilever_k
             self.basename = curve.basename
+            self.xpos,self.ypos = curve.xpos,curve.ypos
 
     # Methods
 
