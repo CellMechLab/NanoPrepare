@@ -538,8 +538,8 @@ class Jpk(DataSet):
         self.tip_radius = 1.0  #nm (user input)
 
     def createSegments(self):
-        self.append(Segment(self, self.data['z'][:self._segmentend], self.data['force'][:self._segmentend]))
         self.append(Segment(self, self.data['z'][self._segmentend:], self.data['force'][self._segmentend:]))
+        self.append(Segment(self, self.data['z'][:self._segmentend], self.data['force'][:self._segmentend]))
 
 class JpkForceMap(DataSet):
     _leaf_ext = ['.jpk-force-map']
