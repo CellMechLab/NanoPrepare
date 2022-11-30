@@ -528,9 +528,10 @@ class Jpk(DataSet):
         fd = afmformats.mod_force_distance.AFMForceDistance(
             f[self.curveid]._raw_data, f[self.curveid].metadata, diskcache=False)
 
-        self.data['force'] = [fd.appr['force']*1e9, fd.retr['force']*1e9]
-        self.data['z'] = [
-            -1.0*(fd.appr['height (measured)']*1e9), -1.0*(fd.retr['height (measured)']*1e9)] #flip z
+        self._segmentend=len(fd.appr['force'])
+        self.data['force'] = np.append(fd.appr['force']*1e9, fd.retr['force']*1e9)
+        self.data['z'] = np.append(-1.0*(fd.appr['height (measured)']*1e9), -1.0*(fd.retr['height (measured)']*1e9)) #flip z
+        self.data['time']=np.append(fd.appr['time'], fd.retr['time'])
         metadata = fd.metadata
         # print(fd.metadata)
         self.cantilever_k = metadata['spring constant']
@@ -538,9 +539,9 @@ class Jpk(DataSet):
 
     def createSegments(self):
         segment = ['forward', 'backward']
-        for i in range(len(segment)+1):
-            self.append(Segment(self, self.data['z'], self.data['force']))
-            self[i].setData(self.data['z'][i-1], self.data['force'][i-1])
+        self.append(Segment(self, self.data['z'][:self._segmentend], self.data['force'][:self._segmentend]))
+        self.append(Segment(self, self.data['z'][self._segmentend:], self.data['force'][self._segmentend:]))
+            
 
 class JpkForceMap(DataSet):
     _leaf_ext = ['.jpk-force-map']
