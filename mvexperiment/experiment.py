@@ -86,7 +86,7 @@ def toFloat(val):
 class ChiaroBase(DataSet):
 
     def check(self):
-        f = open(self.filename)
+        f = open(self.filename,encoding='latin1')
         signature = f.readline()
         f.close()
         if signature[0:5] == 'Date\t':
@@ -102,7 +102,7 @@ class ChiaroBase(DataSet):
 
     def header(self):
         self.tip_shape = 'sphere'
-        f = open(self.filename)
+        f = open(self.filename,encoding='latin1')
 
         self.O11={'device':'Chiaro','version':'old'}
 
@@ -175,7 +175,7 @@ class ChiaroBase(DataSet):
         f.close()
 
     def load(self):
-        f = open(self.filename)
+        f = open(self.filename,encoding='latin1')
         stopLine = 'Time (s)'
         numeric = False
         data = []
