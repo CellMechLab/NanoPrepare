@@ -104,13 +104,13 @@ class ChiaroBase(DataSet):
         self.tip_shape = 'sphere'
         f = open(self.filename,encoding='latin1')
 
-        self.O11={'device':'Chiaro','version':'old'}
+        self.O11={'device':'Chiaro','version':'old','SMDuration':0}
 
         targets = ['Tip radius (um)', 'Calibration factor', 'k (N/m)', 'SMDuration (s)',
                    'Profile:', 'E[eff] (Pa)', 'X-position (um)', 'Y-position (um)',
                    'Software version','Time (s)','Measurement','Loading / unloading time (s)','Depth (nm)',
                    'Z-position (um)','Z surface (um)','Piezo position (nm) (Measured)', 'Calibration factor',
-                   'Device', 'Software version','Control mode','Measurement']
+                   'Device', 'Software version','Control mode','Measurement','SMDuration']
 
         startprotocol = ['Profile','Piezo Indentation Sweep Settings']
 
@@ -157,6 +157,8 @@ class ChiaroBase(DataSet):
                     self.O11['piezopos'] = toFloat(value)
                 elif target=='Device':
                     self.O11['device'] = value
+                elif target[:10]=='SMDuration':
+                    self.O11['SMDuration'] = float(value)
                 elif target=='Control mode':
                     #Control mode: Displacement
                     #Control mode: Indentation
@@ -208,11 +210,11 @@ class Chiaro(ChiaroBase):
 
     def createSegments(self):
         if self.O11['version'] == 'old':
-            return self.createSegments2019()
-        nodi=[]
-        nodi.append(0)
+            return self.createSegments2019()        
         time= self.data['time']
         if self.O11['mode']=='Displacement':
+            nodi=[]
+            nodi.append(0)
             #if displacement control, use smart mode
             signal = self.data['z']
             dy = np.abs(savgol_filter(signal,101,2,2))
@@ -227,11 +229,12 @@ class Chiaro(ChiaroBase):
         else:        
             #go safe mode
             nodi = [] 
-            nodi.append(0)
-            curtime = 0
+            curtime = self.O11['SMDuration']
+            nodi.append(np.argmin((self.data['time']-curtime)**2))            
             for seg in self.protocol:
                 curtime += seg[1]
                 nodi.append( np.argmin((self.data['time']-curtime)**2) )        
+        self.nodi=nodi
         
         for i in range(len(nodi) - 1):
             if (nodi[i+1]-nodi[i])<2:
