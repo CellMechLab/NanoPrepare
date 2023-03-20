@@ -230,7 +230,8 @@ class Chiaro(ChiaroBase):
             #go safe mode
             nodi = [] 
             curtime = self.O11['SMDuration']
-            nodi.append(np.argmin((self.data['time']-curtime)**2))            
+            #nodi.append(np.argmin((self.data['time']-curtime)**2))   
+            nodi.append(0)        
             for seg in self.protocol:
                 curtime += seg[1]
                 nodi.append( np.argmin((self.data['time']-curtime)**2) )        
