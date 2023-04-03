@@ -2,7 +2,7 @@
 Simple graphical user interface (GUI) to screen and pack nanoindentation curves for further analysis.
 
 ## Introduction 
-This GUI  is designed to open nanoindentation data (force-displacement curves), screen them (eliminating bad curves) and packing them together in a bundle .json file to be used for further analysis. This packaged .json file can be opened and processed using the nanoindentation project: https://github.com/CellMechLab/nanoindentation. 
+This GUI  is designed to open nanoindentation data (force-displacement curves), screen them (eliminating bad curves) and packing them together in a bundle .json file to be used for further analysis. This packaged .json file can be opened and processed using the nanoindentation project: https://github.com/CellMechLab/nanoindentation or the more advanced softmech project https://github.com/CellMechLab/softmech.
 
 ## Documentation 
 A step-by-step guide and video tutorials on how to use the software is avilable in our recent paper:
