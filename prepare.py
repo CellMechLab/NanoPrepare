@@ -332,6 +332,7 @@ class NanoWindow(QtWidgets.QMainWindow):
             c.alpha = num
 
     def screenSelected(self,fid):
+        #bla
         if fid == 0:
             return
         name = self.ui.cScreen.currentText()
