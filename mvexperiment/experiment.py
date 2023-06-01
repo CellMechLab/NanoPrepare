@@ -86,7 +86,7 @@ def toFloat(val):
 class ChiaroBase(DataSet):
 
     def check(self):
-        f = open(self.filename)
+        f = open(self.filename,encoding='latin1')
         signature = f.readline()
         f.close()
         if signature[0:5] == 'Date\t':
@@ -102,15 +102,15 @@ class ChiaroBase(DataSet):
 
     def header(self):
         self.tip_shape = 'sphere'
-        f = open(self.filename)
+        f = open(self.filename,encoding='latin1')
 
-        self.O11={'device':'Chiaro','version':'old'}
+        self.O11={'device':'Chiaro','version':'old','SMDuration':0}
 
         targets = ['Tip radius (um)', 'Calibration factor', 'k (N/m)', 'SMDuration (s)',
                    'Profile:', 'E[eff] (Pa)', 'X-position (um)', 'Y-position (um)',
                    'Software version','Time (s)','Measurement','Loading / unloading time (s)','Depth (nm)',
                    'Z-position (um)','Z surface (um)','Piezo position (nm) (Measured)', 'Calibration factor',
-                   'Device', 'Software version','Control mode','Measurement']
+                   'Device', 'Software version','Control mode','Measurement','SMDuration']
 
         startprotocol = ['Profile','Piezo Indentation Sweep Settings']
 
@@ -157,6 +157,8 @@ class ChiaroBase(DataSet):
                     self.O11['piezopos'] = toFloat(value)
                 elif target=='Device':
                     self.O11['device'] = value
+                elif target[:10]=='SMDuration':
+                    self.O11['SMDuration'] = float(value)
                 elif target=='Control mode':
                     #Control mode: Displacement
                     #Control mode: Indentation
@@ -175,7 +177,7 @@ class ChiaroBase(DataSet):
         f.close()
 
     def load(self):
-        f = open(self.filename)
+        f = open(self.filename,encoding='latin1')
         stopLine = 'Time (s)'
         numeric = False
         data = []
@@ -208,34 +210,32 @@ class Chiaro(ChiaroBase):
 
     def createSegments(self):
         if self.O11['version'] == 'old':
-            return self.createSegments2019()
-        nodi=[]
-        nodi.append(0)
+            return self.createSegments2019()        
         time= self.data['time']
-        if self.O11['mode'] == 'Indentation':
-            signal = self.data['indentation']
-        elif self.O11['mode']=='Load':
-            signal = self.data['force']
-        else:
+        if self.O11['mode']=='Displacement':
+            nodi=[]
+            nodi.append(0)
+            #if displacement control, use smart mode
             signal = self.data['z']
-        dy = np.abs(savgol_filter(signal,101,2,2))
-        for th in range(95,100):
-            threshold = np.percentile(dy,th)
-            changes = find_peaks(dy,threshold)
-            if len(changes[0])<10:
-                break
-        for dtime in changes[0]:
-            nodi.append( dtime )
-        nodi.append(len(self.data['z'])-1)
-        
-        if len(nodi)>len(self.protocol)+2:
+            dy = np.abs(savgol_filter(signal,101,2,2))
+            for th in range(95,100):
+                threshold = np.percentile(dy,th)
+                changes = find_peaks(dy,threshold)
+                if len(changes[0])<10:
+                    break
+            for dtime in changes[0]:
+                nodi.append( dtime )
+            nodi.append(len(self.data['z'])-1)
+        else:        
             #go safe mode
             nodi = [] 
-            nodi.append(0)
-            curtime = 0
+            curtime = self.O11['SMDuration']
+            #nodi.append(np.argmin((self.data['time']-curtime)**2))   
+            nodi.append(0)        
             for seg in self.protocol:
                 curtime += seg[1]
                 nodi.append( np.argmin((self.data['time']-curtime)**2) )        
+        self.nodi=nodi
         
         for i in range(len(nodi) - 1):
             if (nodi[i+1]-nodi[i])<2:
@@ -508,6 +508,73 @@ class Easytsv(DataSet):
         self.cantilever_k = float(lines[1][lines[1].find(':')+1:].strip())
         # R value needed by program
         self.tip_radius = float(lines[2][lines[2].find(':')+1:].strip())
+        data = np.loadtxt(self.filename, delimiter='\t', skiprows=4)
+        self.data['force'] = data[:, 1]
+        self.data['z'] = data[:, 0]
+
+    def createSegments(self):
+        self.append(Segment(self))
+        self[0].setData(self.data['z'], self.data['force'])
+
+class Jpkcurve(DataSet):
+    _leaf_ext = ['.txt']
+
+    def load(self):
+        f = afmformats.load_data(self.filename)
+        # inspect the columns
+        # print(f[0].columns)
+
+        fd = afmformats.mod_force_distance.AFMForceDistance(
+            f[self.curveid]._raw_data, f[self.curveid].metadata, diskcache=False)
+
+        self._segmentend=len(fd.appr['force'])
+        self.data['force'] = np.append(fd.appr['force']*1e9, fd.retr['force']*1e9)
+        self.data['z'] = np.append(-1.0*(fd.appr['height (measured)']*1e9), -1.0*(fd.retr['height (measured)']*1e9)) #flip z
+        self.data['time']=np.append(fd.appr['time'], fd.retr['time'])
+        metadata = fd.metadata
+        # print(fd.metadata)
+        self.cantilever_k = metadata['spring constant']
+        self.tip_radius = 1.0  #nm (user input)
+
+    def createSegments(self):
+        self.append(Segment(self, self.data['z'][self._segmentend:], self.data['force'][self._segmentend:]))
+        self.append(Segment(self, self.data['z'][:self._segmentend], self.data['force'][:self._segmentend]))
+
+class JPKExport(DataSet):
+    _leaf_ext = ['.txt']
+
+    def is_leaf(self):
+        return False
+
+    def __init__(self, filename=None, parent=None):
+        super().__init__(filename, parent)
+        if self._filehandler.is_file() is True:
+            f = afmformats.load_data(filename)
+            for i in range(len(f)):
+                newleaf = Jpk(filename,self)
+                newleaf.curveid = i
+                self.append(newleaf)
+    _leaf_ext = ['.txt']
+
+    def check(self):
+        f = open(self.filename)
+        l1 = f.readline().strip()
+        f.close()
+        if l1[0] == '#':
+            return True
+        else:
+            return False
+
+    def load(self):
+        f = open(self.filename)
+        lines = list()
+        for i in range(3):  # first three lines of the file
+            lines.append(f.readline().strip())  # strip removes \n
+        f.close()
+        # K value needed by program
+        self.cantilever_k = float(lines[1][lines[1].find(':')+1:].strip())
+        # R value needed by program
+        #self.tip_radius = float(lines[2][lines[2].find(':')+1:].strip())
         data = np.loadtxt(self.filename, delimiter='\t', skiprows=4)
         self.data['force'] = data[:, 1]
         self.data['z'] = data[:, 0]

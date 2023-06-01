@@ -251,7 +251,14 @@ class NanoWindow(QtWidgets.QMainWindow):
 
         self.ui.curve_segment.setMaximum(len(self.experiment.haystack[0])-1)
         if len(self.experiment.haystack[0]) > 1:
-            self.ui.curve_segment.setValue(1)
+            if "Optics11" in quale:
+                if self.experiment.haystack[0].O11['mode']=="Displacement":
+                    self.ui.curve_segment.setValue(1)
+                else:
+                    self.ui.curve_segment.setValue(0)
+            else:
+                self.ui.curve_segment.setValue(1)
+            
         self.connect_all()
         self.refill()
 
