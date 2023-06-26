@@ -27,7 +27,8 @@ def emptyCurve():
         "device_manufacturer": "Optics11",
         "tip":{
             "geometry": "sphere",
-            "radius": 0.0
+            "radius": 0.0,
+            "angle": 0.0
         },
         "spring_constant": 0.0, 
 		"segment": "approach",
@@ -339,6 +340,7 @@ class NanoWindow(QtWidgets.QMainWindow):
             c.alpha = num
 
     def screenSelected(self,fid):
+        #bla
         if fid == 0:
             return
         name = self.ui.cScreen.currentText()
@@ -381,7 +383,7 @@ class NanoWindow(QtWidgets.QMainWindow):
         curves = []
 
         geometry = str(self.ui.geometry.currentText()).lower()
-        radius = radius = float(self.ui.tipradius.value())
+        radius = float(self.ui.tipradius.value())
         spring = float(self.ui.springconstant.value())
 
         for c in self.collection:
@@ -389,6 +391,7 @@ class NanoWindow(QtWidgets.QMainWindow):
                 cv = emptyCurve()
                 cv['filename']=c.basename                
                 cv['tip']['radius']=radius*1e-9
+                cv['tip']['angle']=radius
                 cv['tip']['geometry']=geometry
                 cv['spring_constant']=spring
                 cv['position']=(c.xpos,c.ypos)
