@@ -168,7 +168,9 @@ class ChiaroBase(DataSet):
 
         for line in f:
             if line.strip() == '':
-                break      
+                break     
+            elif line[:4]=='Step':
+                break
             slices = line.strip().replace(',', '.').split('\t')
             num1 = float(slices[1])
             num2 = float(slices[3])
