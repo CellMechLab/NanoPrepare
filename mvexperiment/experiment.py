@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.signal import savgol_filter,find_peaks
-import afmformats
+try:
+    import afmformats
+except:
+    print('You have an old version of afmformats installed.')
 
 from .curve import (MODE_DIRECTION_BACKWARD, MODE_DIRECTION_FORWARD,
                     MODE_DIRECTIONS_PAUSE, Segment)
