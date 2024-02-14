@@ -9,7 +9,6 @@ from .curve import (MODE_DIRECTION_BACKWARD, MODE_DIRECTION_FORWARD,
                     MODE_DIRECTIONS_PAUSE, Segment)
 from .mvFilesystem import MvNode
 
-
 class DataSet(MvNode):
     _leaf_ext = ['.txt']
 
@@ -169,15 +168,27 @@ class ChiaroBase(DataSet):
                     #Control mode: Peak Load Poking
                     self.O11['mode'] = value
 
-        for line in f:
-            if line.strip() == '':
-                break     
-            elif line[:4]=='Step':
-                break
-            slices = line.strip().replace(',', '.').split('\t')
-            num1 = float(slices[1])
-            num2 = float(slices[3])
-            self.protocol.append([float(slices[1]), float(slices[3])])
+        #reading the protocol
+        
+        if self.O11['mode']=='Displacement':
+            for line in f:
+                if 'Loading / unloading' in line:
+                    approach = float(line.strip().split('\t')[1])
+                    self.protocol.append([0.0, approach])
+        else:
+            for line in f:
+                try:                
+                    if line.strip() == '':
+                        break     
+                    elif line[:4]=='Step':
+                        break
+                    slices = line.strip().replace(',', '.').split('\t')
+                    num1 = float(slices[1])
+                    num2 = float(slices[3])
+                    self.protocol.append([float(slices[1]), float(slices[3])])
+                except:
+                    print('Error reading the following line:')
+                    print(line)
 
         f.close()
 
