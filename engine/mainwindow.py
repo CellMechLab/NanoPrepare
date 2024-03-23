@@ -8,7 +8,7 @@ class UI(QMainWindow):
         super().__init__()
         
         # Set window title and geometry
-        self.setWindowTitle("PyQtGraph Example")
+        self.setWindowTitle("O11 Prepare")
         self.setGeometry(100, 100, 800, 600)
 
         # Create a central widget and layout
@@ -19,11 +19,15 @@ class UI(QMainWindow):
         # Group 1: Button, QComboBox, and List
         group1_layout = QHBoxLayout()
         self.openfile = QPushButton("Open file")
-        button2 = QPushButton("Open folder")
-        combo_box = QComboBox()
-        combo_box.addItems(["Option 1", "Option 2", "Option 3"])
+        self.openfolder = QPushButton("Open folder")
+        self.nfiles = QLabel("0")
+        self.wdir = QLabel("None")
         group1_layout.addWidget(self.openfile)
-        group1_layout.addWidget(combo_box)
+        group1_layout.addWidget(self.openfolder)
+        group1_layout.addWidget(QLabel("Opened files: "))
+        group1_layout.addWidget(self.nfiles)
+        group1_layout.addWidget(QLabel(" - Working dir: "))
+        group1_layout.addWidget(self.wdir)
         spacer = QSpacerItem(20, 20,  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         group1_layout.addItem( spacer )
         layout.addLayout(group1_layout)
