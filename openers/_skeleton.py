@@ -8,23 +8,61 @@ tips = {
     'other':{'geometry':'other','parameter':'Unknown','unit':'au','value':0.0}
 }
 
+class segment(object):
+    def __init__(self,parent):
+        self.curve=parent
+        self.data = None
+        self.idTime=None
+        self.idForce=None
+        self.idZ = None
+        self.isDeflection=False
+        self.channels=[]
 
-class prepare_opener(object):
+    def getCurve(self,mode='FZ'):
+        if mode == 'FZ':
+            force = self.data[:,self.idForce]
+            if self.isDeflection:
+                force*=self.curve.parameters['k']
+            return self.data[:,self.idZ],force
+        elif mode == 'FT':
+            force = self.data[:,self.idForce]
+            if self.isDeflection:
+                force*=self.curve.parameters['k']
+            return self.data[:,self.idTime],force
+
+class curve(object):
     def __init__(self,file_path) -> None:
         self.filename = file_path
         self.dir , self.basename = os.path.split(file_path)
         self.data = None
-        self.segments = None
         self.tip = tips['sphere']
         self.parameters={'k':None,'x':None,'y':None}
         self.idTime=None
         self.idForce=None
         self.idZ = None
         self.isDeflection=False
-        return self.check()
+        self.value = None #see below
+        self.mode = None #speed = constant speed; position = constant position ; force = constant force
+        self.channels=[]
+        self.segments=[]
+
+    def attach(self,data):
+        s = segment()
+        s.idTime = self.idTime
+        s.idForce = self.idForce
+        s.idZ = self.idZ
+        s.isDeflection = self.isDeflection
+        self.segments.append(s)
+
+class prepare_opener(object):
+    def __init__(self,file_path) -> None:
+        self.filename = file_path
+        self.dir , self.basename = os.path.split(file_path)
+        self.curve=curve()
         
     def check(self):
         return True
     
     def open(self):
         self.parse()
+        return self.curve

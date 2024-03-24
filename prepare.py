@@ -11,6 +11,7 @@ class engine(object):
         self.ui = UI()
         self.ui.openfile.clicked.connect(self.open_file)
         self.ui.openfolder.clicked.connect(self.open_folder)
+        self.haystack=[]
 
     def open_folder(self):
         fname = QFileDialog.getExistingDirectory(self.ui, 'Select the root dir', './')
@@ -22,10 +23,13 @@ class engine(object):
 
         self.model = MVexperiment(fname)
         self.ui.filelist.setModel(self.model)
+        self.ui.filelist.resizeColumnToContents(0)
+        self.ui.filelist.expanded.connect(self.resizeView)
 
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
 
-        
+    def resizeView(self):
+        self.ui.filelist.resizeColumnToContents(0)
 
     def open_file(self):
         popup = PopupWindow(self.ui)
