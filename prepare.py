@@ -1,6 +1,7 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QDialog
-from PyQt6.QtCore import Qt
+import sys,os
+from PySide6.QtWidgets import QApplication, QDialog, QFileDialog 
+from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtCore import Qt, QDir
 from engine.mainwindow import UI
 from engine.popup import PopupWindow
 
@@ -11,7 +12,33 @@ class engine(object):
         self.ui.openfolder.clicked.connect(self.open_folder)
 
     def open_folder(self):
-        pass
+        fname = QFileDialog.getExistingDirectory(self.ui, 'Select the root dir', './')
+        if fname == '' or fname is None or fname[0] == '':
+            return
+
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self.ui.wdir.setText(fname)
+
+        self.model = QStandardItemModel()
+        
+        
+        it = QStandardItem('Massimo')
+        it.appendRow(QStandardItem('Minski'))
+        it.appendRow(QStandardItem('Gatti'))
+        it.appendRow(QStandardItem('Babbo'))
+        self.model.appendRow(it)
+        self.model.appendRow(QStandardItem('Vassalli'))
+        #self.model.setRootPath(fname)
+
+        # Create a tree view and set the model
+        self.ui.filelist.setModel(self.model)
+
+        # Set the root index of the tree view to the root path
+        
+
+        QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
+
+        
 
     def open_file(self):
         popup = PopupWindow(self.ui)

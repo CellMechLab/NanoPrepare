@@ -1,6 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QSpacerItem, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QHBoxLayout, QSlider, QLabel, QSizePolicy
-from PyQt6.QtCore import Qt
+from PySide6.QtWidgets import QSpacerItem,QTreeView, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QHBoxLayout, QSlider, QLabel, QSizePolicy
+from PySide6.QtCore import Qt
 import pyqtgraph as pg
 
 class UI(QMainWindow):
@@ -46,8 +46,8 @@ class UI(QMainWindow):
         # Group 3: Button and Group of widgets
         group3_layout = QVBoxLayout()
         button2 = QPushButton("Button 2")
-        list_widget = QLabel("List\nItem 1\nItem 2\nItem 3")
-
+        self.filelist = QTreeView()
+        group3_layout.addWidget(self.filelist)
         group3_layout.addWidget(button2)
         sub_widget = QWidget()
         sub_layout = QVBoxLayout(sub_widget)
