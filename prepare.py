@@ -4,6 +4,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt, QDir
 from engine.mainwindow import UI
 from engine.popup import PopupWindow
+from engine.experiment import MVexperiment
 
 class engine(object):
     def __init__(self) -> None:
@@ -19,22 +20,8 @@ class engine(object):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.ui.wdir.setText(fname)
 
-        self.model = QStandardItemModel()
-        
-        
-        it = QStandardItem('Massimo')
-        it.appendRow(QStandardItem('Minski'))
-        it.appendRow(QStandardItem('Gatti'))
-        it.appendRow(QStandardItem('Babbo'))
-        self.model.appendRow(it)
-        self.model.appendRow(QStandardItem('Vassalli'))
-        #self.model.setRootPath(fname)
-
-        # Create a tree view and set the model
+        self.model = MVexperiment(fname)
         self.ui.filelist.setModel(self.model)
-
-        # Set the root index of the tree view to the root path
-        
 
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
 

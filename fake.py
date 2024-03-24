@@ -4,7 +4,7 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import preparation.prepare_motor as motor
-import mvexperiment.experiment as experiment
+import engine.experiment as experiment
 import preparation.prepare_view as view
 
 import protocols.screening
