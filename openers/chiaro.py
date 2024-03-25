@@ -13,9 +13,38 @@ class opener(skeleton.prepare_opener):
         self.parse()
         self.createSegments()
         return self.curve
+    
+    def getProtocols(self):
+        protocols=[]
+        f = open(self.filename)
+        next = False
+        for riga in f:
+            if riga.startswith('Profile'):
+                next = True
+            if next is True:
+                if riga.startswith('D'):
+                    elements = riga.strip().split('\t')
+                    protocols.append(float(elements[1]),float(elements[3]))
+                else:
+                    break
+        f.close()
+        return protocols
 
-    def createSegments(self):
-        pass
+    def createSegments(self,mode='safe'):
+        self.segments=[]
+
+        if mode=='safe':
+            protocols=self.getProtocols()
+            nodi = [] 
+            curtime = self.curve.parameters['SMDuration']
+            #nodi.append(np.argmin((self.data['time']-curtime)**2))   
+            nodi.append(0)        
+            time = self.curve.data[:,self.curve.idTime]
+            for seg in self.protocol:
+                curtime += seg[1]
+                nodi.append( np.argmin((time-curtime)**2) )        
+            
+            
 
     def parse(self):
         f = open(self.filename)
