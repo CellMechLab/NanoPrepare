@@ -20,12 +20,11 @@ class MVcurve(QStandardItem):
         if path.is_file():
             chiaro = opener(path)
             if chiaro.check() is False:
-                return False
-            
-
+                return False            
             self.isCurve = True
             self.setCheckable(True)
-            self.setCheckState(True)            
+            self.setCheckState(True)        
+            self.curve = opener.open()    
         else:
             for ddir in path.iterdir():
                 if ddir.is_dir() is True:
@@ -39,12 +38,16 @@ class MVcurve(QStandardItem):
 
 class MVexperiment(QStandardItemModel):
 
-    def __init__(self,root):
-        named = Path(root)
+    def __init__(self,root=None):        
         super().__init__()
-        self.root = root
         self.setHorizontalHeaderLabels(['Filename','k','R'])
-        self.createTree(named)
+        if root is not None:
+            self.createTree(Path(root))
+
+    def attach(self,filename):        
+        row = MVcurve(filename)
+        if row is not False:
+            self.appendRow([row,QStandardItem(row.curve.parameters['k']),QStandardItem(row.curve.tip['value'])])
 
     def createTree(self,root):         
         for ddir in root.iterdir():
@@ -53,8 +56,5 @@ class MVexperiment(QStandardItemModel):
                 self.appendRow([row,QStandardItem(),QStandardItem()])
             elif ddir.is_file() is True:
                 if ddir.suffix == EXT:
-                    row = MVcurve(ddir)
-                    #box = QStandardItem()                    
-                    self.appendRow([row,QStandardItem('22'),QStandardItem('12')])
-                    #self.appendRow(row)
+                    self.attach(ddir)
         

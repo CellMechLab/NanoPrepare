@@ -11,32 +11,33 @@ class engine(object):
         self.ui = UI()
         self.ui.openfile.clicked.connect(self.open_file)
         self.ui.openfolder.clicked.connect(self.open_folder)
-        self.haystack=[]
-
-    def open_folder(self):
-        fname = QFileDialog.getExistingDirectory(self.ui, 'Select the root dir', './')
-        if fname == '' or fname is None or fname[0] == '':
-            return
-
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        self.ui.wdir.setText(fname)
-
-        self.model = MVexperiment(fname)
+        self.model = MVexperiment()
         self.ui.filelist.setModel(self.model)
         self.ui.filelist.resizeColumnToContents(0)
         self.ui.filelist.expanded.connect(self.resizeView)
 
+    def open_folder(self):
+        fname = QFileDialog.getExistingDirectory(self.ui, 'Select the root dir', self.ui.wdir)
+        if fname == '' or fname is None or fname[0] == '':
+            return
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self.ui.wdir.setText(fname)
+        self.model.createTree(fname)
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
 
     def resizeView(self):
         self.ui.filelist.resizeColumnToContents(0)
 
-    def open_file(self):
-        popup = PopupWindow(self.ui)
-        if popup.exec() == QDialog.DialogCode.Accepted:
-            selected_value = popup.on_button2_clicked()
-            print(selected_value)
-    
+    def open_file(self,filename=None):
+        if filename is None:
+            filename = QFileDialog.getOpenFileName(self.ui, 'Select the file', self.ui.wdir)
+            if filename == '' or filename is None or filename[0] == '':
+                return
+        self.model.attach(filename)
+        #popup = PopupWindow(self.ui)
+        #if popup.exec() == QDialog.DialogCode.Accepted:
+        #    selected_value = popup.on_button2_clicked()
+        #    print(selected_value)    
 
 def main():
     app = QApplication(sys.argv)

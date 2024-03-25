@@ -21,7 +21,7 @@ class UI(QMainWindow):
         self.openfile = QPushButton("Open file")
         self.openfolder = QPushButton("Open folder")
         self.nfiles = QLabel("0")
-        self.wdir = QLabel("None")
+        self.wdir = QLabel("./")
         group1_layout.addWidget(self.openfile)
         group1_layout.addWidget(self.openfolder)
         group1_layout.addWidget(QLabel("Opened files: "))

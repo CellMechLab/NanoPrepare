@@ -43,8 +43,11 @@ class opener(skeleton.prepare_opener):
             for seg in self.protocol:
                 curtime += seg[1]
                 nodi.append( np.argmin((time-curtime)**2) )        
-            
-            
+        
+        for i in range(len(nodi) - 1):
+            if (nodi[i+1]-nodi[i])<2:
+                continue
+            self.curve.attach(self.curve.data[nodi[i]:nodi[i + 1],:])
 
     def parse(self):
         f = open(self.filename)
