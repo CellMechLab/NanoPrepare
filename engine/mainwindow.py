@@ -18,7 +18,7 @@ class UI(QMainWindow):
 
         # Group 1: Button, QComboBox, and List
         group1_layout = QHBoxLayout()
-        self.openfile = QPushButton("Open file")
+        self.openfile = QPushButton("Open files")
         self.openfolder = QPushButton("Open folder")
         self.nfiles = QLabel("0")
         self.wdir = QLabel("./")

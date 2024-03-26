@@ -22,12 +22,12 @@ class opener(skeleton.prepare_opener):
         f = open(self.filename)
         next = False
         for riga in f:
-            if riga.startswith('Profile'):
+            if riga.startswith('Profile') or riga.startswith('Piezo Indentation'):
                 next = True
-            if next is True:
+            elif next is True:
                 if riga.startswith('D'):
                     elements = riga.strip().split('\t')
-                    protocols.append(float(elements[1]),float(elements[3]))
+                    protocols.append([float(elements[1]),float(elements[3])])
                 else:
                     break
         f.close()
@@ -45,7 +45,6 @@ class opener(skeleton.prepare_opener):
             for seg in self.getProtocols():
                 curtime += seg[1]
                 nodi.append( np.argmin((time-curtime)**2) )        
-        
         for i in range(len(nodi) - 1):
             if (nodi[i+1]-nodi[i])<2:
                 continue

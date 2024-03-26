@@ -18,7 +18,9 @@ class MVbase(object):
             row = MVcurve(Path(filename))
             self.appendRow([row,QStandardItem(str(row.curve.parameters['k'])),QStandardItem(str(row.curve.tip['value']))])
         except NotValidFile:
-            pass        
+            pass
+        except:
+            raise       
 
 class MVcurve(QStandardItem,MVbase):
     def __init__(self,filename):    
@@ -29,6 +31,8 @@ class MVcurve(QStandardItem,MVbase):
 
     def createCurve(self,path):        
         if path.is_file():
+            if path.suffix != EXT:
+                raise NotValidFile('Extension not valid')
             chiaro = opener(path)
             if chiaro.check() is False:
                 raise NotValidFile('This does not look like an Optics11 file')   
@@ -42,8 +46,7 @@ class MVcurve(QStandardItem,MVbase):
                     row = MVcurve(ddir)                    
                     self.appendRow([row,QStandardItem(),QStandardItem()])
                 elif ddir.is_file() is True:
-                    if ddir.suffix == EXT:  
-                        self.attach(ddir)                      
+                    self.attach(ddir)                      
 
 class MVexperiment(QStandardItemModel,MVbase):
 
@@ -59,6 +62,5 @@ class MVexperiment(QStandardItemModel,MVbase):
                 row = MVcurve(ddir)                    
                 self.appendRow([row,QStandardItem(),QStandardItem()])
             elif ddir.is_file() is True:
-                if ddir.suffix == EXT:
-                    self.attach(ddir)
+                self.attach(ddir)
         

@@ -49,11 +49,12 @@ class curve(object):
         self.segments=[]
 
     def attach(self,data):
-        s = segment()
+        s = segment(self)
         s.idTime = self.idTime
         s.idForce = self.idForce
         s.idZ = self.idZ
         s.isDeflection = self.isDeflection
+        s.data=data
         self.segments.append(s)
 
 class prepare_opener(object):
