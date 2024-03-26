@@ -9,48 +9,52 @@ from openers.chiaro import opener
 
 EXT = '.txt'
 
-class MVcurve(QStandardItem):
+class NotValidFile(Exception):
+    """ my custom exception class """
 
-    def __init__(self,filename):
+class MVbase(object):
+    def attach(self,filename):     
+        try:     
+            row = MVcurve(Path(filename))
+            self.appendRow([row,QStandardItem(str(row.curve.parameters['k'])),QStandardItem(str(row.curve.tip['value']))])
+        except NotValidFile:
+            pass        
+
+class MVcurve(QStandardItem,MVbase):
+    def __init__(self,filename):    
+        filename = Path(filename)    
         super().__init__(filename.name)
-        self.createCurve(filename)
         self.isCurve = False
+        self.createCurve(filename)
 
     def createCurve(self,path):        
         if path.is_file():
             chiaro = opener(path)
             if chiaro.check() is False:
-                return False            
+                raise NotValidFile('This does not look like an Optics11 file')   
             self.isCurve = True
             self.setCheckable(True)
-            self.setCheckState(True)        
-            self.curve = opener.open()    
+            self.setCheckState( Qt.CheckState.Checked )        
+            self.curve = chiaro.open()    
         else:
             for ddir in path.iterdir():
                 if ddir.is_dir() is True:
                     row = MVcurve(ddir)                    
                     self.appendRow([row,QStandardItem(),QStandardItem()])
                 elif ddir.is_file() is True:
-                    if ddir.suffix == EXT:
-                        row = MVcurve(ddir)
-                        self.appendRow([row,QStandardItem('k=22'),QStandardItem('R=12')])
-                        #self.appendRow(row)
+                    if ddir.suffix == EXT:  
+                        self.attach(ddir)                      
 
-class MVexperiment(QStandardItemModel):
+class MVexperiment(QStandardItemModel,MVbase):
 
     def __init__(self,root=None):        
         super().__init__()
         self.setHorizontalHeaderLabels(['Filename','k','R'])
         if root is not None:
-            self.createTree(Path(root))
-
-    def attach(self,filename):        
-        row = MVcurve(filename)
-        if row is not False:
-            self.appendRow([row,QStandardItem(row.curve.parameters['k']),QStandardItem(row.curve.tip['value'])])
+            self.createTree(root)
 
     def createTree(self,root):         
-        for ddir in root.iterdir():
+        for ddir in Path(root).iterdir():
             if ddir.is_dir() is True:
                 row = MVcurve(ddir)                    
                 self.appendRow([row,QStandardItem(),QStandardItem()])

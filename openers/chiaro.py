@@ -7,7 +7,10 @@ EXT = '.txt'
 
 class opener(skeleton.prepare_opener):
     def check(self):
-        self.version = None
+        f = open(self.filename)
+        riga = f.readline()
+        f.close()
+        return riga.startswith('Date')
 
     def open(self):
         self.parse()
@@ -34,13 +37,12 @@ class opener(skeleton.prepare_opener):
         self.segments=[]
 
         if mode=='safe':
-            protocols=self.getProtocols()
             nodi = [] 
             curtime = self.curve.parameters['SMDuration']
             #nodi.append(np.argmin((self.data['time']-curtime)**2))   
             nodi.append(0)        
             time = self.curve.data[:,self.curve.idTime]
-            for seg in self.protocol:
+            for seg in self.getProtocols():
                 curtime += seg[1]
                 nodi.append( np.argmin((time-curtime)**2) )        
         
@@ -50,6 +52,9 @@ class opener(skeleton.prepare_opener):
             self.curve.attach(self.curve.data[nodi[i]:nodi[i + 1],:])
 
     def parse(self):
+        #specific parameters
+        self.curve.parameters['SMDuration']=0.0
+
         f = open(self.filename)
         for riga in f:
             if riga.startswith('Time (s)'):

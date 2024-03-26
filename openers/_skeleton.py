@@ -16,6 +16,10 @@ class segment(object):
         self.idForce=None
         self.idZ = None
         self.isDeflection=False
+        self.value = None #see below
+        self.mode = None #speed = constant [speed], +values for approach; 
+                         #pause = constant [position] ; force = constant [force] ;
+                         #sineZ = sine controlling position [freq]; sineF = sine controlling force [freq]
         self.channels=[]
 
     def getCurve(self,mode='FZ'):
@@ -31,7 +35,7 @@ class segment(object):
             return self.data[:,self.idTime],force
 
 class curve(object):
-    def __init__(self,file_path) -> None:
+    def __init__(self,file_path=None) -> None:
         self.filename = file_path
         self.dir , self.basename = os.path.split(file_path)
         self.data = None
@@ -40,9 +44,7 @@ class curve(object):
         self.idTime=None
         self.idForce=None
         self.idZ = None
-        self.isDeflection=False
-        self.value = None #see below
-        self.mode = None #speed = constant speed; position = constant position ; force = constant force
+        self.isDeflection=False        
         self.channels=[]
         self.segments=[]
 
@@ -58,7 +60,7 @@ class prepare_opener(object):
     def __init__(self,file_path) -> None:
         self.filename = file_path
         self.dir , self.basename = os.path.split(file_path)
-        self.curve=curve()
+        self.curve=curve(file_path)
         
     def check(self):
         return True

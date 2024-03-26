@@ -10,7 +10,7 @@ class UI(QMainWindow):
         # Set window title and geometry
         self.setWindowTitle("O11 Prepare")
         self.setGeometry(100, 100, 800, 600)
-
+        self.setSizePolicy(QSizePolicy.Policy.Expanding,QSizePolicy.Policy.Expanding)
         # Create a central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
