@@ -36,11 +36,11 @@ class UI(QMainWindow):
         group2_layout = QHBoxLayout()
         slider = QSlider(  )
         slider.setOrientation( Qt.Orientation.Vertical )  # Vertical slider
-        plot_widget1 = pg.PlotWidget()
-        plot_widget2 = pg.PlotWidget()
+        self.graphleft = pg.PlotWidget()
+        self.graphright = pg.PlotWidget()
         group2_layout.addWidget(slider)
-        group2_layout.addWidget(plot_widget1, stretch=1)
-        group2_layout.addWidget(plot_widget2, stretch=1)
+        group2_layout.addWidget(self.graphleft, stretch=1)
+        group2_layout.addWidget(self.graphright, stretch=1)
         layout.addLayout(group2_layout)
 
         # Group 3: Button and Group of widgets

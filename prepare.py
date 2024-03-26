@@ -14,8 +14,24 @@ class engine(object):
         self.ui.openfolder.clicked.connect(self.open_folder)
         self.model = MVexperiment()
         self.ui.filelist.setModel(self.model)
+        self.model.rowsInserted.connect(self.setCurve)
         self.resizeView()
         self.ui.filelist.expanded.connect(self.resizeView)
+        
+        self.ui.filelist.selectionModel().currentRowChanged.connect(self.highlight)
+        #self.ui.filelist.clicked.connect(self.highlight)
+        
+    def highlight(self,new,old):
+        print(new,old)
+        #row = self.model.itemFromIndex(obj)
+        #row.line.setPen(color='r')
+
+    def setCurve(self,parent,first,last):
+        row = self.model.itemFromIndex(self.model.index(first,0))
+        x = [1, 2, 3, 4, 5]
+        y = [2, 3, 4, 5, 6]
+        row.line = self.ui.graphleft.plot(x, y, pen='b')
+        
 
     def open_folder(self):
         fname = QFileDialog.getExistingDirectory(self.ui, 'Select the root dir', self.ui.wdir.text() )

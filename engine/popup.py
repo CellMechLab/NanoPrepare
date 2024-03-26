@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QComboBox, QSlider, QDialog
-from PyQt6.QtCore import Qt
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QComboBox, QSlider, QDialog
+from PySide6.QtCore import Qt
 import pyqtgraph as pg
 
 class PopupWindow(QDialog):
