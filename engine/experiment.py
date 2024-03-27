@@ -5,22 +5,24 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 import pyqtgraph as pg
 
 from pathlib import Path
-from openers.chiaro import opener
-
-EXT = '.txt'
 
 class NotValidFile(Exception):
     """ my custom exception class """
 
+emptyItems=[QStandardItem() for _ in range(4)]
 class MVbase(object):
     def attach(self,filename):     
         try:     
             row = MVcurve(Path(filename))
-            self.appendRow([row,QStandardItem(str(row.curve.parameters['k'])),QStandardItem(str(row.curve.tip['value']))])
+            addItems = [QStandardItem(str(row.curve.parameters['k']))]
+            addItems.append(QStandardItem(str(row.curve.tip['geometry'])))
+            addItems.append(QStandardItem(row.curve.tip['parameter'] +': '+ str(row.curve.tip['value'])+' '+row.curve.tip['unit']))
+            addItems.append(QStandardItem(str(len(row.curve.segments))))
+            self.appendRow([row,*addItems])
+            return True
         except NotValidFile:
-            pass
-        except:
-            raise       
+            return False
+        
 
 class MVcurve(QStandardItem,MVbase):
     def __init__(self,filename):    
@@ -30,10 +32,11 @@ class MVcurve(QStandardItem,MVbase):
         self.createCurve(filename)
 
     def createCurve(self,path):        
+        import openers.chiaro as proxy
         if path.is_file():
-            if path.suffix != EXT:
+            if path.suffix != proxy.EXT :
                 raise NotValidFile('Extension not valid')
-            chiaro = opener(path)
+            chiaro = proxy.opener(path)
             if chiaro.check() is False:
                 raise NotValidFile('This does not look like an Optics11 file')   
             self.isCurve = True
@@ -44,15 +47,16 @@ class MVcurve(QStandardItem,MVbase):
             for ddir in path.iterdir():
                 if ddir.is_dir() is True:
                     row = MVcurve(ddir)                    
-                    self.appendRow([row,QStandardItem(),QStandardItem()])
+                    self.appendRow([row,*emptyItems])
                 elif ddir.is_file() is True:
                     self.attach(ddir)                      
+
 
 class MVexperiment(QStandardItemModel,MVbase):
 
     def __init__(self,root=None):        
         super().__init__()
-        self.setHorizontalHeaderLabels(['Filename','k','R'])
+        self.setHorizontalHeaderLabels(['Filename','k','Tip','Size','Segments'])
         if root is not None:
             self.createTree(root)
 
@@ -60,7 +64,7 @@ class MVexperiment(QStandardItemModel,MVbase):
         for ddir in Path(root).iterdir():
             if ddir.is_dir() is True:
                 row = MVcurve(ddir)                    
-                self.appendRow([row,QStandardItem(),QStandardItem()])
+                self.appendRow([row,*emptyItems])
             elif ddir.is_file() is True:
                 self.attach(ddir)
         

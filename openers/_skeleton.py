@@ -1,8 +1,8 @@
 import os
 
 tips = {
-    'sphere':{'geometry':'sphere','parameter':'Radius','unit':'nm','value':0.0},
-    'cylinder':{'geometry':'cylinder','parameter':'Radius','unit':'nm','value':0.0},
+    'sphere':{'geometry':'sphere','parameter':'Radius','unit':'um','value':0.0},
+    'cylinder':{'geometry':'cylinder','parameter':'Radius','unit':'um','value':0.0},
     'cone':{'geometry':'cone','parameter':'Angle','unit':'deg','value':0.0},
     'pyramid':{'geometry':'pyramid','parameter':'Angle','unit':'deg','value':0.0},
     'other':{'geometry':'other','parameter':'Unknown','unit':'au','value':0.0}
