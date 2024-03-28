@@ -24,7 +24,6 @@ class Screener(boxPanel):
     def calculate(self, x,y):
         # This function gets the current x and y and returns whether to keep the curve or not.
         threshold = self.getValue('Threshold')*1e-9
-        print(threshold)
         if np.max(y)>threshold:
             return True
         else:

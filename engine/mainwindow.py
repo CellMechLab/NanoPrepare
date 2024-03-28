@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QSpacerItem,QTreeView,QGroupBox, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QHBoxLayout, QSlider, QLabel, QSizePolicy
+from PySide6.QtWidgets import QSpacerItem, QCheckBox, QTreeView,QGroupBox, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QHBoxLayout, QSlider, QLabel, QSizePolicy
 from PySide6.QtCore import Qt
 import pyqtgraph as pg
 
@@ -20,6 +20,7 @@ class UI(QMainWindow):
         group1_layout = QHBoxLayout()
         
         self.toggle_button = QPushButton("Optics11")
+        self.toggle_button.setStyleSheet('color: green;')
         self.toggle_button.setCheckable(True)
         group1_layout.addWidget(self.toggle_button)
         self.openfile = QPushButton("Open files")
@@ -37,7 +38,13 @@ class UI(QMainWindow):
         group1_layout.addWidget(self.segmentSlider)
         group1_layout.addItem( QSpacerItem(20, 20,  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum) )
         self.tipselect = QPushButton('Set Tip')
+        self.save = QPushButton('Save')
+        self.saveas = QPushButton("JSON")
+        self.saveas.setStyleSheet('color: green;')
+        self.saveas.setCheckable(True)
         group1_layout.addWidget(self.tipselect)
+        group1_layout.addWidget(self.save)
+        group1_layout.addWidget(self.saveas)
         layout.addLayout(group1_layout)
 
         # Group 2: Horizontal Slider and two PyQtGraph PlotWidgets

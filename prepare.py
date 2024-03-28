@@ -18,6 +18,7 @@ class engine(object):
         self.ui.openfile.clicked.connect(self.open_files)
         self.ui.openfolder.clicked.connect(self.open_folder)
         self.ui.toggle_button.clicked.connect(self.toggle_button_clicked)
+        self.ui.saveas.clicked.connect(self.saveas_button_clicked)
         #the model contains the tree of curve objects and is used for the treeview
         self.model = MVexperiment()
         self.ui.filelist.setModel(self.model)
@@ -36,10 +37,22 @@ class engine(object):
         if self.ui.toggle_button.isChecked():
             self.ui.toggle_button.setText("AFM")
             self.model.setProxy('AFM')
+            self.ui.toggle_button.setStyleSheet('color: red;')
         else:
             self.ui.toggle_button.setText("Optics11")
             self.model.setProxy('Optics11')
-        
+            self.ui.toggle_button.setStyleSheet('color: green;')
+            
+    def saveas_button_clicked(self):
+        if self.ui.saveas.isChecked():
+            self.ui.saveas.setText("HDF5")
+            self.model.setProxy('HDF5')
+            self.ui.saveas.setStyleSheet('color: red;')
+        else:
+            self.ui.saveas.setText("JSON")
+            self.model.setProxy('JSON')
+            self.ui.saveas.setStyleSheet('color: green;')
+            
     def highlight(self,new,old): #highlights the current xcurve and plots it in the right panel
         self.DISABLE = True
         if old.isEmpty() is False:
