@@ -18,6 +18,10 @@ class UI(QMainWindow):
 
         # Group 1: Button, QComboBox, and List
         group1_layout = QHBoxLayout()
+        
+        self.toggle_button = QPushButton("Optics11")
+        self.toggle_button.setCheckable(True)
+        group1_layout.addWidget(self.toggle_button)
         self.openfile = QPushButton("Open files")
         self.openfolder = QPushButton("Open folder")
         self.nfiles = QLabel("0")
@@ -38,13 +42,14 @@ class UI(QMainWindow):
 
         # Group 2: Horizontal Slider and two PyQtGraph PlotWidgets
         group2_layout = QHBoxLayout()
-        slider = QSlider(  )
-        slider.setOrientation( Qt.Orientation.Vertical )  # Vertical slider
+        self.slider = QSlider(  )
+        self.slider.setMinimum(0)
+        self.slider.setOrientation( Qt.Orientation.Vertical )  # Vertical slider
         self.graphleft = pg.PlotWidget()
         self.graphright = pg.PlotWidget()
         self.rightcurve = pg.PlotCurveItem([0,0],[0,0])
         self.graphright.addItem(self.rightcurve)
-        group2_layout.addWidget(slider)
+        group2_layout.addWidget(self.slider)
         group2_layout.addWidget(self.graphleft, stretch=1)
         group2_layout.addWidget(self.graphright, stretch=1)
         layout.addLayout(group2_layout)

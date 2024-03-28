@@ -63,6 +63,9 @@ class prepare_opener(object):
         self.dir , self.basename = os.path.split(file_path)
         self.curve=curve(file_path)
         
+    def isMultiple(self):
+        return False
+        
     def check(self):
         return True
     

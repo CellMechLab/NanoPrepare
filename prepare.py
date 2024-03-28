@@ -8,12 +8,15 @@ import pyqtgraph as pg
 from engine.experiment import MVexperiment
 from pathlib import Path
 
+
 class engine(object):
     def __init__(self) -> None:
         #set up the ui and the signal/slot connection
         self.ui = UI()
+        self.DISABLE = False
         self.ui.openfile.clicked.connect(self.open_files)
         self.ui.openfolder.clicked.connect(self.open_folder)
+        self.ui.toggle_button.clicked.connect(self.toggle_button_clicked)
         #the model contains the tree of curve objects and is used for the treeview
         self.model = MVexperiment()
         self.ui.filelist.setModel(self.model)
@@ -24,22 +27,38 @@ class engine(object):
         self.ui.filelist.selectionModel().selectionChanged.connect(self.highlight) #manage the selection
         self.ui.segmentSlider.valueChanged.connect(self.refreshView) #change the active segment and refresh the view
         self.ui.tipselect.clicked.connect(self.setTip)
+        self.ui.slider.valueChanged.connect(self.slideCurves)
+        
+    def toggle_button_clicked(self):
+        if self.ui.toggle_button.isChecked():
+            self.ui.toggle_button.setText("AFM")
+            self.model.setProxy('AFM')
+        else:
+            self.ui.toggle_button.setText("Optics11")
+            self.model.setProxy('Optics11')
         
     def highlight(self,new,old): #highlights the current xcurve and plots it in the right panel
+        self.DISABLE = True
         if old.isEmpty() is False:
             oldnum = old.first().indexes()[0].row()
             rowold = self.model.item(oldnum,0)
             color = rowold.line.opts['pen'].color().name()
             rowold.line.setPen(color=color,width=1)
         newnum = new.first().indexes()[0].row()
+        self.ui.slider.setValue(newnum)
         rownew = self.model.item(newnum,0)
         color = rownew.line.opts['pen'].color().name()
         rownew.line.setPen(color=color,width=3)
         self.ui.rightcurve.setData(*rownew.line.getData())
+        self.DISABLE = False
 
     def getRow(self,rowindex):
         return self.model.itemFromIndex(self.model.index(rowindex,0))
-
+    
+    def slideCurves(self,value):
+        if self.DISABLE is False:
+            self.ui.filelist.selectionModel().select(self.model.index(value,0) ,QItemSelectionModel.SelectionFlag.SelectCurrent)
+        
     def lineclick(self,line): #line-click selection
         self.ui.filelist.selectionModel().select(line.parentitem.index(),QItemSelectionModel.SelectionFlag.SelectCurrent )
         
@@ -61,11 +80,30 @@ class engine(object):
         self.ui.wdir.setText(fname)
         self.model.createTree(fname)
         self.resizeView()
-        self.ui.nfiles.setText(str( int( (self.model.rowCount() ) )))
         self.refreshView()
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
         
+    def open_files(self): #opens a bunch of files
+        filename = QFileDialog.getOpenFileNames(self.ui, 'Select the file', self.ui.wdir.text())
+        if filename == '' or filename is None or filename[0] == '' or len(filename[0])==0:
+            return
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        for fname in filename[0]:
+            fname = Path(fname)
+            if self.model.attach(fname) is True:
+                self.ui.wdir.setText(str(fname.parents[0]))
+        self.resizeView()
+        self.refreshView()
+        QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)        
+            #popup = PopupWindow(self.ui)
+            #if popup.exec() == QDialog.DialogCode.Accepted:
+            #    selected_value = popup.on_button2_clicked()
+            #    print(selected_value)    
+
+        
     def refreshView(self,curSeg=None):
+        self.ui.nfiles.setText(str( int( (self.model.rowCount() ) )))
+        self.ui.slider.setMaximum(self.model.rowCount()-1)
         if curSeg is None:
             nsegs = 0
             for i in range(self.model.rowCount()):
@@ -118,25 +156,6 @@ class engine(object):
                 row.setText(geometry)
                 row = self.model.itemFromIndex(self.model.index(i,3))
                 row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
-
-    def open_files(self): #opens a bunch of files
-        filename = QFileDialog.getOpenFileNames(self.ui, 'Select the file', self.ui.wdir.text())
-        if filename == '' or filename is None or filename[0] == '' or len(filename[0])==0:
-            return
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        for fname in filename[0]:
-            fname = Path(fname)
-            if self.model.attach(fname) is True:
-                self.ui.wdir.setText(str(fname.parents[0]))
-        self.resizeView()
-        self.refreshView()
-        QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
-        
-        self.ui.nfiles.setText(str( int( (self.model.rowCount() ) )))
-            #popup = PopupWindow(self.ui)
-            #if popup.exec() == QDialog.DialogCode.Accepted:
-            #    selected_value = popup.on_button2_clicked()
-            #    print(selected_value)    
 
 def main():
     app = QApplication(sys.argv)
