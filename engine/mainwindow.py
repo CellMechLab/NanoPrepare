@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QSpacerItem,QTreeView, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QHBoxLayout, QSlider, QLabel, QSizePolicy
+from PySide6.QtWidgets import QSpacerItem,QTreeView,QGroupBox, QMainWindow, QVBoxLayout, QWidget, QPushButton, QComboBox, QHBoxLayout, QSlider, QLabel, QSizePolicy
 from PySide6.QtCore import Qt
 import pyqtgraph as pg
 
@@ -55,22 +55,36 @@ class UI(QMainWindow):
         layout.addLayout(group2_layout)
 
         # Group 3: Button and Group of widgets
-        group3_layout = QVBoxLayout()
-        button2 = QPushButton("Button 2")
-        self.filelist = QTreeView()
+        group3 = QHBoxLayout()
         
-        sub2_widget = QWidget()
-        sub2_layout = QHBoxLayout(sub2_widget)
+        group3_left = QVBoxLayout()
+        self.filelist = QTreeView()        
+        
+        #sub2_widget = QWidget()
+        sub2_layout = QHBoxLayout()
         sub2_layout.addWidget(QLabel("Working dir: "))
         self.wdir = QLabel("./")
         sub2_layout.addWidget(self.wdir)
         sub2_layout.addItem(QSpacerItem(20, 20,  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))       
-        group3_layout.addWidget(sub2_widget)
-        group3_layout.addWidget(self.filelist)
-        group3_layout.addWidget(button2)
-        sub_widget = QWidget()
-        sub_layout = QVBoxLayout(sub_widget)
-        sub_layout.addWidget(QLabel("Sub Widget 1"))
-        sub_layout.addWidget(QLabel("Sub Widget 2"))
-        group3_layout.addWidget(sub_widget)
-        layout.addLayout(group3_layout)
+        
+        group3_left.addWidget(self.filelist)
+        group3_left.addLayout(sub2_layout)
+        
+        left_widget = QWidget()
+        left_widget.setLayout(group3_left)
+        
+        group3_right = QVBoxLayout()
+        self.sel_screen = QComboBox()
+        self.sel_screen.addItem('---select---')
+        group3_right.addWidget(self.sel_screen)
+        self.box_cp = QGroupBox()
+        group3_right.addWidget(self.box_cp)
+        
+        right_widget = QWidget()
+        right_widget.setLayout(group3_right)
+        
+        group3.addWidget(left_widget)
+        group3.addWidget(right_widget)
+
+
+        layout.addLayout(group3)

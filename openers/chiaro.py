@@ -58,6 +58,8 @@ class opener(skeleton.prepare_opener):
         for riga in f:
             if riga.startswith('Time (s)'):
                 self.curve.channels = riga.strip().split('\t')
+                #Time (s)	Load (uN)	Indentation (nm)	Cantilever (nm)	Piezo (nm)	Auxiliary
+                self.multipliers = np.ones(len(self.curve.channels))
                 for i in range(len(self.curve.channels)):
                     if self.curve.channels[i].startswith('Time'):
                         self.curve.idTime = i
@@ -65,6 +67,10 @@ class opener(skeleton.prepare_opener):
                         self.curve.idForce = i
                     elif self.curve.channels[i].startswith('Piezo'):
                         self.curve.idZ = i
+                    if '(nm)' in self.curve.channels[i]:
+                        self.multipliers[i]=1e-9
+                    elif 'uN' in self.curve.channels[i]:
+                        self.multipliers[i]=1e-6
                 break
             else:
                 if riga.startswith('X-position'):
@@ -89,5 +95,5 @@ class opener(skeleton.prepare_opener):
             if len(elements) == len(self.curve.channels):
                 values = [float(x) for x in elements]
                 data.append(values)
-        self.curve.data = np.array(data)
+        self.curve.data = np.array(data)*self.multipliers
         f.close()

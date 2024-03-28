@@ -1,5 +1,5 @@
 import sys,os
-from PySide6.QtWidgets import QApplication, QDialog, QFileDialog 
+from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QFormLayout
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt, QDir, QModelIndex, QItemSelectionModel
 from engine.mainwindow import UI
@@ -7,6 +7,7 @@ from engine.tipselection import PopupWindow as tipPopup
 import pyqtgraph as pg
 from engine.experiment import MVexperiment
 from pathlib import Path
+import protocols.screening
 
 
 class engine(object):
@@ -28,6 +29,8 @@ class engine(object):
         self.ui.segmentSlider.valueChanged.connect(self.refreshView) #change the active segment and refresh the view
         self.ui.tipselect.clicked.connect(self.setTip)
         self.ui.slider.valueChanged.connect(self.slideCurves)
+        self.loadPlugins()
+        self.ui.sel_screen.currentIndexChanged.connect(self.screenSelected) #populate the screening area on demand
         
     def toggle_button_clicked(self):
         if self.ui.toggle_button.isChecked():
@@ -116,7 +119,6 @@ class engine(object):
                 row.line.setData(*row.curve.segments[curSeg].getCurve())
             self.ui.rightcurve.setData([],[])
             sel = self.ui.filelist.selectedIndexes()[0]
-            print(sel)
             row = self.model.itemFromIndex(self.model.index(sel.row(),0))
             self.ui.rightcurve.setData(*row.line.getData())
 
@@ -137,6 +139,31 @@ class engine(object):
             pass
         elif item.column()==3:
             pass
+        
+    def loadPlugins(self):
+        data = protocols.screening.list()
+        self._plugin_screen = list(data.keys())
+        for l in data.values():
+            self.ui.sel_screen.addItem(l)
+            
+    def screenSelected(self,fid):
+        if fid == 0:
+            return
+        layout = self.ui.box_cp.layout()
+        if layout is None:
+            layout = QFormLayout()
+        self._screen = protocols.screening.get(self._plugin_screen[fid-1])
+        
+        self._screen.createUI(layout)
+        self._screen.connect(self.calc)
+        self.ui.box_cp.setLayout(layout)
+        self.calc()
+        
+    def calc(self):
+        for i in range(self.model.rowCount()):
+            row = self.model.itemFromIndex(self.model.index(i,0))
+            if self._screen.do(*row.line.getData()) is False:
+                row.setCheckState(Qt.CheckState.Unchecked)
             
     def setTip(self):
         popup = tipPopup(self.ui)
