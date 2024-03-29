@@ -2,16 +2,17 @@
 Simple graphical user interface (GUI) to screen and pack nanoindentation curves for further analysis.
 
 ## Introduction 
-This GUI  is designed to open nanoindentation data (force-displacement curves), screen them (eliminating bad curves) and packing them together in a bundle .json file to be used for further analysis. This packaged .json file can be opened and processed using the nanoindentation project: https://github.com/CellMechLab/nanoindentation or the more advanced softmech project https://github.com/CellMechLab/softmech.
+This GUI  is designed to open nanoindentation data (force-displacement curves), screen them (eliminating bad curves) and packing them together in a bundle file to be used for further analysis. This packaged file can be opened and processed using the softmech project https://github.com/CellMechLab/softmech.
 
 ## Documentation 
-A step-by-step guide and video tutorials on how to use the software is avilable in our recent paper:
+A step-by-step guide and video tutorials on how to use the previous software version is avilable in our recent paper:
 
-- Ciccone, G., Azevedo Gonzalez Oliva, M., Antonovaite, N., Lüchtefeld, I., Salmeron-Sanchez, M. and Vassalli, M., 2021. Experimental and data analysis workflow for soft matter nanoindentation. Journal of Visualized Experiments (10.3791/63401
-).
+- Ciccone, G., Azevedo Gonzalez Oliva, M., Antonovaite, N., Lüchtefeld, I., Salmeron-Sanchez, M. and Vassalli, M., 2021. Experimental and data analysis workflow for soft matter nanoindentation. Journal of Visualized Experiments (10.3791/63401).
+
+We are updating the documentation to match the new version.
 
 ## Supported file types 
-Right now, the following manufacturers' formats are supported: Optics 11 .txt files (both old and new versions are supported) and NanoSurf .txt files, and other standard AFM formats provided through the afmformats library.
+Right now, the software opens Optics 11 .txt files (both old and new versions are supported). We are working to add support for Nanosurf files.
 
 ## Installation 
 No installer is currently provided. In order use the GUI, a Python 3 environment with the following packages is required: PyQt5, NumPy, SciPy, PyQtGraph, matplotlib, afmformats.
@@ -23,10 +24,7 @@ python prepare.py
 ```
 
 ## Citation 
-If you use this software in your publication and research, please cite the following papers: 
+If you use this software in your publication and research, please cite the following paper: 
 
 - Ciccone, G., Azevedo Gonzalez Oliva, M., Antonovaite, N., Lüchtefeld, I., Salmeron-Sanchez, M. and Vassalli, M., 2021. Experimental and data analysis workflow for soft matter nanoindentation. Journal of Visualized Experiments (10.3791/63401
 ).
-
-- Lüchtefeld, I., Bartolozzi, A., Mejía Morales, J., Dobre, O., Basso, M., Zambelli, T. and Vassalli, M., 2020. Elasticity spectra as a tool to investigate actin cortex mechanics. Journal of nanobiotechnology, 18(1), pp.1-11 (doi.org/10.1186/s12951-020-00706-2).
-
