@@ -206,7 +206,7 @@ class engine(object):
             extension = "JSON Files (*.json)"
             from openers.saveJson import saveJSON as saver
         else:
-            extension = "Identation map Files (*.grid)"
+            extension = "Identation map Files (*.hdf5)"
             from openers.saveHDF5 import saveHDF5 as saver
             
         fname = QFileDialog.getSaveFileName(self.ui, 'Save the experiment', self.ui.wdir.text(), extension)
