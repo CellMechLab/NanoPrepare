@@ -32,6 +32,7 @@ class engine(object):
         self.ui.slider.valueChanged.connect(self.slideCurves)
         self.loadPlugins()
         self.ui.sel_screen.currentIndexChanged.connect(self.screenSelected) #populate the screening area on demand
+        self.ui.save.clicked.connect(self.saveDataset)
         
     def toggle_button_clicked(self):
         if self.ui.toggle_button.isChecked():
@@ -131,9 +132,12 @@ class engine(object):
                 row = self.model.itemFromIndex(self.model.index(i,0))
                 row.line.setData(*row.curve.segments[curSeg].getCurve())
             self.ui.rightcurve.setData([],[])
-            sel = self.ui.filelist.selectedIndexes()[0]
-            row = self.model.itemFromIndex(self.model.index(sel.row(),0))
-            self.ui.rightcurve.setData(*row.line.getData())
+            try:
+                sel = self.ui.filelist.selectedIndexes()[0]
+                row = self.model.itemFromIndex(self.model.index(sel.row(),0))
+                self.ui.rightcurve.setData(*row.line.getData())
+            except:
+                pass
 
     def resizeView(self):
         self.ui.filelist.resizeColumnToContents(0)
@@ -196,6 +200,32 @@ class engine(object):
                 row.setText(geometry)
                 row = self.model.itemFromIndex(self.model.index(i,3))
                 row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
+    
+    def saveDataset(self):
+        if self.ui.saveas.text()=='JSON':
+            extension = "JSON Files (*.json)"
+            from openers.saveJson import saveJSON as saver
+        else:
+            extension = "Identation map Files (*.grid)"
+            from openers.saveHDF5 import saveHDF5 as saver
+            
+        fname = QFileDialog.getSaveFileName(self.ui, 'Save the experiment', self.ui.wdir.text(), extension)
+        if fname == '' or fname is None or fname[0] == '':
+            return
+
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        fname = Path(fname[0])
+        self.ui.wdir.setText(str(fname.parents[0]))
+        prepare = saver(fname)
+        prepare.setSegment(self.ui.segmentSlider.value())
+        for i in range(self.model.rowCount()):
+            row = self.model.itemFromIndex(self.model.index(i,2))
+            obj = self.getRow(i)
+            if obj.checkState() == Qt.CheckState.Checked:
+                prepare.addCurve(obj.curve)
+        prepare.save()        
+        QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)  
+        
 
 def main():
     app = QApplication(sys.argv)
