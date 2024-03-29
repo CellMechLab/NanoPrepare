@@ -1,6 +1,7 @@
 # NanoPrepare 
 Simple graphical user interface (GUI) to screen and pack nanoindentation curves for further analysis.
-Note: this is the new branch for version 1. If you are looking for the old NanoPrepare, either download one of the stored v0 releases or clone the branch v0!
+
+**Note: this is the new branch for version 1. If you are looking for the old NanoPrepare, either download one of the stored v0 releases or clone the branch v0!**
 
 ## Introduction 
 This GUI  is designed to open nanoindentation data (force-displacement curves), screen them (eliminating bad curves) and packing them together in a bundle file to be used for further analysis. This packaged file can be opened and processed using the softmech project https://github.com/CellMechLab/softmech.
