@@ -67,11 +67,9 @@ class PopupWindow(QDialog):
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)         
 
     def on_button2_clicked(self):
-        #selected_value = self.combo_box.currentText()
         self.accept()
-        return True #selected_value
+        return True
 
     def on_button3_clicked(self):
-        #selected_value = self.combo_box.currentText()
         self.reject()
         return False

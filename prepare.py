@@ -221,17 +221,14 @@ class engine(object):
             if self._screen.do(*row.line.getData()) is False:
                 row.setCheckState(Qt.CheckState.Unchecked)
 
-## popup to view curves as a function of time ##
+## popup to view curves as a function of time and select segmentation mode ##
 
     def timeView(self):
         popup = timePopup(self.ui)
         popup.prepare(self.model.haystack)
-                
         if popup.exec() == QDialog.DialogCode.Accepted:
-            if self.ui.segmentSlider.value()==0:
-                self.refreshView()
-            else:
-                self.ui.segmentSlider.setValue(0)
+            self.ui.segmentSlider.setValue(0)
+            self.refreshView()
             nsegs = 0
             for item in self.model.haystack:
                 nsegs = max(nsegs,len(item.curve.segments))
