@@ -228,7 +228,14 @@ class engine(object):
         popup.prepare(self.model.haystack)
                 
         if popup.exec() == QDialog.DialogCode.Accepted:
-            pass
+            if self.ui.segmentSlider.value()==0:
+                self.refreshView()
+            else:
+                self.ui.segmentSlider.setValue(0)
+            nsegs = 0
+            for item in self.model.haystack:
+                nsegs = max(nsegs,len(item.curve.segments))
+            self.ui.segmentSlider.setMaximum(nsegs-1)
 
 ## popup to set the tip geometry ##
             

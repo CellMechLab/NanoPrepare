@@ -5,7 +5,16 @@ import numpy as np
 NAME = 'Chiaro Optics11'
 EXT = '.txt'
 
-def getNodes(curve,mode='safe'):
+def cross(x1, x2, th, dth):
+    th1 = th+dth
+    th2 = th-dth
+    if np.sign(x1-th1) != np.sign(x2-th1):
+        return True
+    if np.sign(x1-th2) != np.sign(x2-th2):
+        return True
+    return False
+
+def getNodes(curve,mode='safe',value=30*1e-9):
         if mode=='safe':
             nodi = [] 
             curtime = curve.parameters['SMDuration']
@@ -14,7 +23,26 @@ def getNodes(curve,mode='safe'):
             time = curve.data[:,curve.idTime]
             for seg in curve.protocols:
                 curtime += seg[1]
-                nodi.append( np.argmin((time-curtime)**2) )        
+                nodi.append( np.argmin((time-curtime)**2) )     
+        elif mode=='euristic':
+            sign = +1
+            nodi = []
+            nodi.append(0)
+            wait = 0
+            Z = curve.data[:,curve.idZ]
+            T = curve.data[:,curve.idTime]
+            actualPos = 2
+            for nextThreshold, nextTime in curve.protocols:
+                for j in range(actualPos, len(Z)):
+                    if T[j] > wait + nextTime:
+                        crossp = Z[j-1]>=nextThreshold*1e-9 and Z[j]<nextThreshold*1e-9
+                        crossm = Z[j-1]<=nextThreshold*1e-9 and Z[j]>nextThreshold*1e-9
+                        if crossp or crossm:
+                            nodi.append(j)
+                            actualPos = j
+                            wait = T[j]
+                            break
+            nodi.append(len(Z)-1)   
         else:
             pass
         return nodi

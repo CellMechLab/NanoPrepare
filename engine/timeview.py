@@ -14,16 +14,19 @@ class PopupWindow(QDialog):
         layout.addWidget(self.plot_widget)
 
         commands = QHBoxLayout()
-        options = QComboBox()
-        options.addItem('Safe mode')
-        options.addItem('Euristic mode')
-        options.addItem('Shift mode')
-        options.currentTextChanged.connect(self.reload)
-        commands.addWidget(options)
+        self.options = QComboBox()
+        self.options.addItem('Safe mode')
+        self.options.addItem('Euristic mode')
+        self.options.addItem('Shift mode')
+        self.options.currentTextChanged.connect(self.reload)
+        commands.addWidget(self.options)
         commands.addItem(QSpacerItem(20, 20,  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
         button2 = QPushButton("OK")
         button2.clicked.connect(self.on_button2_clicked)
+        button3 = QPushButton("Cancel")
+        button3.clicked.connect(self.on_button3_clicked)
         commands.addWidget(button2)
+        commands.addWidget(button3)
         
         layout.addLayout(commands)
         
@@ -43,11 +46,17 @@ class PopupWindow(QDialog):
         
     def reload(self,mode):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        
         #recreate segments
         self.plot_widget.clear()
-        
+        modes = {'Safe mode':'safe','Euristic mode':'euristic','Shift mode':'shift'}
+        import openers.chiaro
         for obj in self.haystack:
+            obj.curve.segments=[]
+            nodi = openers.chiaro.getNodes(obj.curve,mode=modes[self.options.currentText()])
+            for i in range(len(nodi) - 1):
+                if (nodi[i+1]-nodi[i])<2:
+                    continue
+                obj.curve.attach(obj.curve.data[nodi[i]:nodi[i + 1],:])
             colors = ['y','c']
             i=0
             for segment in obj.curve.segments:
@@ -61,3 +70,8 @@ class PopupWindow(QDialog):
         #selected_value = self.combo_box.currentText()
         self.accept()
         return True #selected_value
+
+    def on_button3_clicked(self):
+        #selected_value = self.combo_box.currentText()
+        self.reject()
+        return False
