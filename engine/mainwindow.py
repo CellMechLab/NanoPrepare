@@ -39,6 +39,7 @@ class UI(QMainWindow):
         group1_layout.addItem( QSpacerItem(20, 20,  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum) )
         self.timeview = QPushButton('Time view')
         self.tipselect = QPushButton('Set Tip')
+        self.tipselect.setEnabled(False)
         self.save = QPushButton('Save')
         self.saveas = QPushButton("JSON")
         self.saveas.setStyleSheet('color: green;')

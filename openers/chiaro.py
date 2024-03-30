@@ -5,6 +5,20 @@ import numpy as np
 NAME = 'Chiaro Optics11'
 EXT = '.txt'
 
+def getNodes(curve,mode='safe'):
+        if mode=='safe':
+            nodi = [] 
+            curtime = curve.parameters['SMDuration']
+            #nodi.append(np.argmin((self.data['time']-curtime)**2))   
+            nodi.append(0)        
+            time = curve.data[:,curve.idTime]
+            for seg in curve.protocols:
+                curtime += seg[1]
+                nodi.append( np.argmin((time-curtime)**2) )        
+        else:
+            pass
+        return nodi
+
 class opener(skeleton.prepare_opener):
     def check(self):
         f = open(self.filename)
@@ -14,6 +28,7 @@ class opener(skeleton.prepare_opener):
 
     def open(self):
         self.parse()
+        self.getProtocols()
         self.createSegments()
         return self.curve
     
@@ -31,20 +46,10 @@ class opener(skeleton.prepare_opener):
                 else:
                     break
         f.close()
-        return protocols
+        self.curve.protocols = protocols
 
-    def createSegments(self,mode='safe'):
-        self.segments=[]
-
-        if mode=='safe':
-            nodi = [] 
-            curtime = self.curve.parameters['SMDuration']
-            #nodi.append(np.argmin((self.data['time']-curtime)**2))   
-            nodi.append(0)        
-            time = self.curve.data[:,self.curve.idTime]
-            for seg in self.getProtocols():
-                curtime += seg[1]
-                nodi.append( np.argmin((time-curtime)**2) )        
+    def createSegments(self):
+        nodi = getNodes(self.curve,'safe')
         for i in range(len(nodi) - 1):
             if (nodi[i+1]-nodi[i])<2:
                 continue

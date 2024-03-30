@@ -40,14 +40,17 @@ class engine(object):
         
     def toggle_button_clicked(self):
         if self.ui.toggle_button.isChecked():
-            self.ui.toggle_button.setText("AFM")
-            self.model.setProxy('AFM')
+            self.ui.toggle_button.setText("Nanosurf")
+            self.model.setProxy('Nanosurf')
             self.ui.toggle_button.setStyleSheet('color: red;')
+            self.ui.timeview.setEnabled(False)
+            self.ui.tipselect.setEnabled(True)
         else:
             self.ui.toggle_button.setText("Optics11")
             self.model.setProxy('Optics11')
             self.ui.toggle_button.setStyleSheet('color: green;')
-            
+            self.ui.timeview.setEnabled(True)
+            self.ui.tipselect.setEnabled(False)
     def saveas_button_clicked(self):
         if self.ui.saveas.isChecked():
             self.ui.saveas.setText("HDF5")
@@ -222,30 +225,10 @@ class engine(object):
 
     def timeView(self):
         popup = timePopup(self.ui)
-        for i in range(self.model.rowCount()):
-            obj = self.getRow(i)
-            if obj.isCurve:
-                x,y = obj.curve.getTimeForce()
-                line = popup.plot_widget.plot(x,y)
-                line.setAlpha(0.4, False)            
+        popup.prepare(self.model.haystack)
                 
         if popup.exec() == QDialog.DialogCode.Accepted:
-            geometry,value = popup.on_ok_clicked()
-            for i in range(self.model.rowCount()):
-                row = self.model.itemFromIndex(self.model.index(i,2))
-                obj = self.getRow(i)
-                if obj.isCurve:
-                    obj.curve.tip['geometry']=geometry
-                    if geometry=='sphere' or geometry=='cylinder':
-                        obj.curve.tip['parameter']='Radius'
-                        obj.curve.tip['unit']='um'
-                    else:
-                        obj.curve.tip['parameter']='Angle'
-                        obj.curve.tip['unit']='deg'
-                    obj.curve.tip['value']=value
-                    row.setText(geometry)
-                    row = self.model.itemFromIndex(self.model.index(i,3))
-                    row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
+            pass
 
 ## popup to set the tip geometry ##
             

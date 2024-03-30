@@ -31,7 +31,6 @@ class MVbase(object):
                 totest = self.proxy.opener(Path(filename))
                 if totest.isMultiple() is False:
                     row = MVcurve(Path(filename),self.proxy)
-                    print('row',end='')
                     addItems = [QStandardItem(str(row.curve.parameters['k']))]
                     addItems.append(QStandardItem(str(row.curve.tip['geometry'])))
                     addItems.append(QStandardItem(row.curve.tip['parameter'] +': '+ str(row.curve.tip['value'])+' '+row.curve.tip['unit']))
