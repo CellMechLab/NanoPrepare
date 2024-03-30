@@ -56,6 +56,9 @@ class curve(object):
         s.isDeflection = self.isDeflection
         s.data=data
         self.segments.append(s)
+        
+    def getTimeForce(self):
+        return self.data[:,self.idTime],self.data[:,self.idForce]
 
 class prepare_opener(object):
     def __init__(self,file_path) -> None:

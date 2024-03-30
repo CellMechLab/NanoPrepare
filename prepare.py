@@ -4,6 +4,7 @@ from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt, QDir, QModelIndex, QItemSelectionModel
 from engine.mainwindow import UI
 from engine.tipselection import PopupWindow as tipPopup
+from engine.timeview import PopupWindow as timePopup
 import pyqtgraph as pg
 from engine.experiment import MVexperiment
 from pathlib import Path
@@ -15,6 +16,7 @@ class engine(object):
         #set up the ui and the signal/slot connection
         self.ui = UI()
         self.DISABLE = False
+        self.selected = 0
         self.ui.openfile.clicked.connect(self.open_files)
         self.ui.openfolder.clicked.connect(self.open_folder)
         self.ui.toggle_button.clicked.connect(self.toggle_button_clicked)
@@ -22,17 +24,19 @@ class engine(object):
         #the model contains the tree of curve objects and is used for the treeview
         self.model = MVexperiment()
         self.ui.filelist.setModel(self.model)
-        self.model.rowsInserted.connect(self.setCurve) #add features while populating
         self.resizeView()
         self.ui.filelist.expanded.connect(self.resizeView)
         self.model.itemChanged.connect(self.changeDetected) #check for clicks on the checkbox       
-        self.ui.filelist.selectionModel().selectionChanged.connect(self.highlight) #manage the selection
+        self.ui.filelist.selectionModel().selectionChanged.connect(self.modChanged) #manage the selection
         self.ui.segmentSlider.valueChanged.connect(self.refreshView) #change the active segment and refresh the view
         self.ui.tipselect.clicked.connect(self.setTip)
+        self.ui.timeview.clicked.connect(self.timeView)
         self.ui.slider.valueChanged.connect(self.slideCurves)
         self.loadPlugins()
         self.ui.sel_screen.currentIndexChanged.connect(self.screenSelected) #populate the screening area on demand
         self.ui.save.clicked.connect(self.saveDataset)
+        
+## These two functions manage the switching buttons. Maybe change the default to HDF5 soon? ##
         
     def toggle_button_clicked(self):
         if self.ui.toggle_button.isChecked():
@@ -53,49 +57,22 @@ class engine(object):
             self.ui.saveas.setText("JSON")
             self.model.setProxy('JSON')
             self.ui.saveas.setStyleSheet('color: green;')
-            
-    def highlight(self,new,old): #highlights the current xcurve and plots it in the right panel
-        self.DISABLE = True
-        if old.isEmpty() is False:
-            oldnum = old.first().indexes()[0].row()
-            rowold = self.model.item(oldnum,0)
-            color = rowold.line.opts['pen'].color().name()
-            rowold.line.setPen(color=color,width=1)
-        newnum = new.first().indexes()[0].row()
-        self.ui.slider.setValue(newnum)
-        rownew = self.model.item(newnum,0)
-        color = rownew.line.opts['pen'].color().name()
-        rownew.line.setPen(color=color,width=3)
-        self.ui.rightcurve.setData(*rownew.line.getData())
-        self.DISABLE = False
 
-    def getRow(self,rowindex):
-        return self.model.itemFromIndex(self.model.index(rowindex,0))
-    
-    def slideCurves(self,value):
-        if self.DISABLE is False:
-            self.ui.filelist.selectionModel().select(self.model.index(value,0) ,QItemSelectionModel.SelectionFlag.SelectCurrent)
-        
-    def lineclick(self,line): #line-click selection
-        self.ui.filelist.selectionModel().select(line.parentitem.index(),QItemSelectionModel.SelectionFlag.SelectCurrent )
-        
-    def setCurve(self,parent,first,last): #adds a curve to the model for each file added to it
-        row = self.model.itemFromIndex(self.model.index(first,0))
-        curSeg = self.ui.segmentSlider.value()
-        x,y = row.curve.segments[curSeg].getCurve()
-        row.line= pg.PlotCurveItem(x,y,pen='g')
-        row.line.setClickable(True)
-        self.ui.graphleft.addItem(row.line)
-        row.line.parentitem = row
-        row.line.sigClicked.connect(self.lineclick)
-        
+## 
+# These two functions are to open files
+# Opening always attaches to the existing list
+# opening fills self.model of objects from experiment.py
+# setCurves has to be launched, to create and connect the line objects
+# refresh updates the view
+
     def open_folder(self): #opens and browses a folder
         fname = QFileDialog.getExistingDirectory(self.ui, 'Select the root dir', self.ui.wdir.text() )
         if fname == '' or fname is None or fname[0] == '':
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        self.ui.wdir.setText(fname)
         self.model.createTree(fname)
+        self.ui.wdir.setText(str(fname))
+        self.setCurves()
         self.resizeView()
         self.refreshView()
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
@@ -106,42 +83,91 @@ class engine(object):
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         for fname in filename[0]:
-            fname = Path(fname)
-            if self.model.attach(fname) is True:
-                self.ui.wdir.setText(str(fname.parents[0]))
+            self.model.createTree(fname)
+        fname = Path(fname)
+        self.ui.wdir.setText(str(fname.parents[0]))
+        self.setCurves()
         self.resizeView()
         self.refreshView()
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)        
-            #popup = PopupWindow(self.ui)
-            #if popup.exec() == QDialog.DialogCode.Accepted:
-            #    selected_value = popup.on_button2_clicked()
-            #    print(selected_value)    
 
-        
-    def refreshView(self,curSeg=None):
-        self.ui.nfiles.setText(str( int( (self.model.rowCount() ) )))
-        self.ui.slider.setMaximum(self.model.rowCount()-1)
-        if curSeg is None:
-            nsegs = 0
-            for i in range(self.model.rowCount()):
-                row = self.model.itemFromIndex(self.model.index(i,0))
-                nsegs = max(nsegs,len(row.curve.segments))
-            self.ui.segmentSlider.setMaximum(nsegs-1)
-        else:
-            for i in range(self.model.rowCount()):
-                row = self.model.itemFromIndex(self.model.index(i,0))
-                row.line.setData(*row.curve.segments[curSeg].getCurve())
-            self.ui.rightcurve.setData([],[])
-            try:
-                sel = self.ui.filelist.selectedIndexes()[0]
-                row = self.model.itemFromIndex(self.model.index(sel.row(),0))
-                self.ui.rightcurve.setData(*row.line.getData())
-            except:
-                pass
+## After opening, connect lines ##
+
+    def setCurves(self): #adds a curve to the model for each file added to it
+        #row = self.model.itemFromIndex(self.model.index(first,0))
+        self.model.pileup()
+        curSeg = self.ui.segmentSlider.value()
+        nsegs = 0
+        for item in self.model.haystack:
+            nsegs = max(nsegs,len(item.curve.segments))
+            if item.line is None:
+                x,y = item.curve.segments[curSeg].getCurve()
+                item.line= pg.PlotCurveItem(x,y,pen='g')
+                item.line.setClickable(True)
+                self.ui.graphleft.addItem(item.line)
+                item.line.parentitem = item
+                item.line.sigClicked.connect(self.lineclick)
+        self.ui.segmentSlider.setMaximum(nsegs-1)
+        self.ui.nfiles.setText(str( len(self.model.haystack) ))
+        self.ui.slider.setMaximum(len(self.model.haystack)-1)
+
+## refreshing the view is crucial when changing segments ##
+## resizing is just to make the ui experience smoother ##
 
     def resizeView(self):
         self.ui.filelist.resizeColumnToContents(0)
+
+    def refreshView(self,curSeg=None):
+        if curSeg is not None:
+            for obj in self.model.haystack:
+                obj.line.setData(*obj.curve.segments[curSeg].getCurve())
+            self.ui.rightcurve.setData([],[])
+            self.slideCurves(self.selected) #emulate changing selected
+
+## managing changes in selected curve ##
+## the master is the select curve, which aligns: 
+# - selected curve on the left
+# - right curve
+# - slider
+# - selected item in the list
+
+    def selectCurve(self,obj,newid=None):
+        self.DISABLE=True # disable other actions while updating
+        if newid is None:
+            for i in range(len(self.model.haystack)):
+                if obj == self.model.haystack[i]:
+                    newid = i
+                    break
+        self.ui.rightcurve.setData(*obj.line.getData())
+        if self.selected is not None:
+            rowold = self.model.haystack[self.selected]
+            color = rowold.line.opts['pen'].color().name()
+            rowold.line.setPen(color=color,width=1)
+        color = obj.line.opts['pen'].color().name()
+        obj.line.setPen(color=color,width=3)
+        self.ui.rightcurve.setData(*obj.line.getData())
+        self.selected=newid
+        self.ui.slider.setValue(self.selected)
+        self.DISABLE = False
         
+    def slideCurves(self,value):
+        if self.DISABLE is False:
+            self.selectCurve(self.model.haystack[value],value) 
+
+    def lineclick(self,line): #line-click selection
+        obj = line.parentitem
+        self.selectCurve(obj)
+            
+    def modChanged(self,new,old): #highlights the current xcurve and plots it in the right panel
+        if self.DISABLE is False:
+            newnum = new.first().indexes()[0].row()
+            rownew = self.model.item(newnum,0)
+            self.selectCurve(rownew)
+
+
+    def getRow(self,rowindex):
+        return self.model.itemFromIndex(self.model.index(rowindex,0))
+    
     def changeDetected(self,item): #manages changes to the view
         if item.column()==0:            
             width = item.line.opts['pen'].width()
@@ -181,6 +207,34 @@ class engine(object):
             row = self.model.itemFromIndex(self.model.index(i,0))
             if self._screen.do(*row.line.getData()) is False:
                 row.setCheckState(Qt.CheckState.Unchecked)
+
+    def timeView(self):
+        popup = timePopup(self.ui)
+        for i in range(self.model.rowCount()):
+            obj = self.getRow(i)
+            if obj.isCurve:
+                x,y = obj.curve.getTimeForce()
+                line = popup.plot_widget.plot(x,y)
+                line.setAlpha(0.4, False)            
+                
+        if popup.exec() == QDialog.DialogCode.Accepted:
+            geometry,value = popup.on_ok_clicked()
+            for i in range(self.model.rowCount()):
+                row = self.model.itemFromIndex(self.model.index(i,2))
+                obj = self.getRow(i)
+                if obj.isCurve:
+                    obj.curve.tip['geometry']=geometry
+                    if geometry=='sphere' or geometry=='cylinder':
+                        obj.curve.tip['parameter']='Radius'
+                        obj.curve.tip['unit']='um'
+                    else:
+                        obj.curve.tip['parameter']='Angle'
+                        obj.curve.tip['unit']='deg'
+                    obj.curve.tip['value']=value
+                    row.setText(geometry)
+                    row = self.model.itemFromIndex(self.model.index(i,3))
+                    row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
+
             
     def setTip(self):
         popup = tipPopup(self.ui)
@@ -189,17 +243,18 @@ class engine(object):
             for i in range(self.model.rowCount()):
                 row = self.model.itemFromIndex(self.model.index(i,2))
                 obj = self.getRow(i)
-                obj.curve.tip['geometry']=geometry
-                if geometry=='sphere' or geometry=='cylinder':
-                    obj.curve.tip['parameter']='Radius'
-                    obj.curve.tip['unit']='um'
-                else:
-                    obj.curve.tip['parameter']='Angle'
-                    obj.curve.tip['unit']='deg'
-                obj.curve.tip['value']=value
-                row.setText(geometry)
-                row = self.model.itemFromIndex(self.model.index(i,3))
-                row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
+                if obj.isCurve:
+                    obj.curve.tip['geometry']=geometry
+                    if geometry=='sphere' or geometry=='cylinder':
+                        obj.curve.tip['parameter']='Radius'
+                        obj.curve.tip['unit']='um'
+                    else:
+                        obj.curve.tip['parameter']='Angle'
+                        obj.curve.tip['unit']='deg'
+                    obj.curve.tip['value']=value
+                    row.setText(geometry)
+                    row = self.model.itemFromIndex(self.model.index(i,3))
+                    row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
     
     def saveDataset(self):
         if self.ui.saveas.text()=='JSON':
@@ -219,9 +274,9 @@ class engine(object):
         prepare = saver(fname)
         prepare.setSegment(self.ui.segmentSlider.value())
         for i in range(self.model.rowCount()):
-            row = self.model.itemFromIndex(self.model.index(i,2))
+            #row = self.model.itemFromIndex(self.model.index(i,2))
             obj = self.getRow(i)
-            if obj.checkState() == Qt.CheckState.Checked:
+            if obj.isCurve and obj.checkState() == Qt.CheckState.Checked:
                 prepare.addCurve(obj.curve)
         prepare.save()        
         QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)  
