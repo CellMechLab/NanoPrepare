@@ -6,7 +6,7 @@ from engine.mainwindow import UI
 from engine.tipselection import PopupWindow as tipPopup
 from engine.timeview import PopupWindow as timePopup
 import pyqtgraph as pg
-from engine.experiment import MVexperiment
+from engine.experiment import MVexperiment,MVcurve
 from pathlib import Path
 import protocols.screening
 
@@ -27,7 +27,7 @@ class engine(object):
         self.resizeView()
         self.ui.filelist.expanded.connect(self.resizeView)
         self.model.itemChanged.connect(self.changeDetected) #check for clicks on the checkbox       
-        self.ui.filelist.selectionModel().selectionChanged.connect(self.modChanged) #manage the selection
+        self.ui.filelist.clicked.connect(self.modChanged)
         self.ui.segmentSlider.valueChanged.connect(self.refreshView) #change the active segment and refresh the view
         self.ui.tipselect.clicked.connect(self.setTip)
         self.ui.timeview.clicked.connect(self.timeView)
@@ -123,6 +123,31 @@ class engine(object):
                 obj.line.setData(*obj.curve.segments[curSeg].getCurve())
             self.ui.rightcurve.setData([],[])
             self.slideCurves(self.selected) #emulate changing selected
+            
+## Saving the haystack to disk ##    
+
+    def saveDataset(self):
+        if self.ui.saveas.text()=='JSON':
+            extension = "JSON Files (*.json)"
+            from openers.saveJson import saveJSON as saver
+        else:
+            extension = "Identation map Files (*.hdf5)"
+            from openers.saveHDF5 import saveHDF5 as saver
+            
+        fname = QFileDialog.getSaveFileName(self.ui, 'Save the experiment', self.ui.wdir.text(), extension)
+        if fname == '' or fname is None or fname[0] == '':
+            return
+
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        fname = Path(fname[0])
+        self.ui.wdir.setText(str(fname.parents[0]))
+        prepare = saver(fname)
+        prepare.setSegment(self.ui.segmentSlider.value())
+        for obj in self.model.haystack:
+            if obj.isCurve and obj.checkState() == Qt.CheckState.Checked:
+                prepare.addCurve(obj.curve)
+        prepare.save()        
+        QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)  
 
 ## managing changes in selected curve ##
 ## the master is the select curve, which aligns: 
@@ -146,11 +171,13 @@ class engine(object):
         color = obj.line.opts['pen'].color().name()
         obj.line.setPen(color=color,width=3)
         self.ui.rightcurve.setData(*obj.line.getData())
+        index = self.model.indexFromItem(obj)
+        self.ui.filelist.setCurrentIndex(index)
         self.selected=newid
         self.ui.slider.setValue(self.selected)
         self.DISABLE = False
         
-    def slideCurves(self,value):
+    def slideCurves(self,value): #triggered by the slider
         if self.DISABLE is False:
             self.selectCurve(self.model.haystack[value],value) 
 
@@ -158,31 +185,14 @@ class engine(object):
         obj = line.parentitem
         self.selectCurve(obj)
             
-    def modChanged(self,new,old): #highlights the current xcurve and plots it in the right panel
+    def modChanged(self,new): #list click selection
         if self.DISABLE is False:
-            newnum = new.first().indexes()[0].row()
-            rownew = self.model.item(newnum,0)
-            self.selectCurve(rownew)
+            obj = self.model.itemFromIndex(new)
+            if isinstance(obj,MVcurve) and obj.line is not None:
+                self.selectCurve(obj)
 
+## loading and using screening plugins from the protocols folder ##
 
-    def getRow(self,rowindex):
-        return self.model.itemFromIndex(self.model.index(rowindex,0))
-    
-    def changeDetected(self,item): #manages changes to the view
-        if item.column()==0:            
-            width = item.line.opts['pen'].width()
-            if item.checkState() == Qt.CheckState.Checked:       
-                item.line.setPen(color='g',width=width)
-            else:
-                item.line.setPen(color='r',width=width)
-        elif item.column()==2:
-            obj = self.getRow(item.row())
-            obj.curve.parameters['k']=float(item.text())
-        elif item.column()==2:
-            pass
-        elif item.column()==3:
-            pass
-        
     def loadPlugins(self):
         data = protocols.screening.list()
         self._plugin_screen = list(data.keys())
@@ -207,6 +217,8 @@ class engine(object):
             row = self.model.itemFromIndex(self.model.index(i,0))
             if self._screen.do(*row.line.getData()) is False:
                 row.setCheckState(Qt.CheckState.Unchecked)
+
+## popup to view curves as a function of time ##
 
     def timeView(self):
         popup = timePopup(self.ui)
@@ -235,51 +247,34 @@ class engine(object):
                     row = self.model.itemFromIndex(self.model.index(i,3))
                     row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
 
+## popup to set the tip geometry ##
             
     def setTip(self):
         popup = tipPopup(self.ui)
         if popup.exec() == QDialog.DialogCode.Accepted:
             geometry,value = popup.on_ok_clicked()
-            for i in range(self.model.rowCount()):
-                row = self.model.itemFromIndex(self.model.index(i,2))
-                obj = self.getRow(i)
-                if obj.isCurve:
-                    obj.curve.tip['geometry']=geometry
-                    if geometry=='sphere' or geometry=='cylinder':
-                        obj.curve.tip['parameter']='Radius'
-                        obj.curve.tip['unit']='um'
-                    else:
-                        obj.curve.tip['parameter']='Angle'
-                        obj.curve.tip['unit']='deg'
-                    obj.curve.tip['value']=value
-                    row.setText(geometry)
-                    row = self.model.itemFromIndex(self.model.index(i,3))
-                    row.setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")
-    
-    def saveDataset(self):
-        if self.ui.saveas.text()=='JSON':
-            extension = "JSON Files (*.json)"
-            from openers.saveJson import saveJSON as saver
-        else:
-            extension = "Identation map Files (*.hdf5)"
-            from openers.saveHDF5 import saveHDF5 as saver
             
-        fname = QFileDialog.getSaveFileName(self.ui, 'Save the experiment', self.ui.wdir.text(), extension)
-        if fname == '' or fname is None or fname[0] == '':
-            return
-
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        fname = Path(fname[0])
-        self.ui.wdir.setText(str(fname.parents[0]))
-        prepare = saver(fname)
-        prepare.setSegment(self.ui.segmentSlider.value())
-        for i in range(self.model.rowCount()):
-            #row = self.model.itemFromIndex(self.model.index(i,2))
-            obj = self.getRow(i)
-            if obj.isCurve and obj.checkState() == Qt.CheckState.Checked:
-                prepare.addCurve(obj.curve)
-        prepare.save()        
-        QApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)  
+            for obj in self.model.haystack:
+                obj.curve.tip['geometry']=geometry
+                if geometry=='sphere' or geometry=='cylinder':
+                    obj.curve.tip['parameter']='Radius'
+                    obj.curve.tip['unit']='um'
+                else:
+                    obj.curve.tip['parameter']='Angle'
+                    obj.curve.tip['unit']='deg'
+                obj.curve.tip['value']=value
+                
+                obj.parent().child(obj.row(),2).setText(geometry)
+                obj.parent().child(obj.row(),3).setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")            
+    
+    def getRow(self,rowindex):
+        return self.model.itemFromIndex(self.model.index(rowindex,0))
+    
+    def changeDetected(self,item): #manages changes to the view ?       
+        print( item.text() )
+        print( item.column(),item.row() )        
+        for i in range(4):
+            print(item.parent().child(item.row(),i).text())
         
 
 def main():
