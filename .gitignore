@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .qt_for_python/uic/prepare.py
+.DS_Store
