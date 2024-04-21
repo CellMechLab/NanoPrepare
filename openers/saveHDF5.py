@@ -39,7 +39,7 @@ class saveHDF5(object):
                 named = [curve.idTime,curve.idZ,curve.idForce]
                 names = ['Time','Z','Force']
                 for idname,name in zip(named,names):
-                    dt = curve.data[idname,:]
+                    dt = segment.data[:,idname]
                     if idname == curve.idForce and curve.isDeflection is True:
                         dt *= curve.parameters['k']
                     dataseg.create_dataset(name,data=dt)                
