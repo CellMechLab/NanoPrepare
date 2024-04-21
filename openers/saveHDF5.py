@@ -26,10 +26,24 @@ class saveHDF5(object):
             cv.attrs['spring_constant']=curve.parameters['k']
             cv.attrs['x-position']=curve.parameters['x']
             cv.attrs['y-position']=curve.parameters['y']
+            cv.attrs['segments']=len(curve.segments)
+            cv.attrs['selectedSegment']=self.selectedsegment
             tip = cv.create_group('tip')
             for key in curve.tip:
                 tip.attrs[key]=curve.tip[key]
-            z,f=curve.segments[self.selectedsegment].getCurve()
-            cv.create_dataset('Z',data=z)
-            cv.create_dataset('F',data=f)
+            k=0            
+            for segment in curve.segments:
+                dataseg = cv.create_group(f'segment{k}')
+                k+=1
+                dataseg.attrs['mode']=''
+                named = [curve.idTime,curve.idZ,curve.idForce]
+                names = ['Time','Z','Force']
+                for idname,name in zip(named,names):
+                    dt = curve.data[idname,:]
+                    if idname == curve.idForce and curve.isDeflection is True:
+                        dt *= curve.parameters['k']
+                    dataseg.create_dataset(name,data=dt)                
+                for j in range(len(curve.channels)):
+                    if j not in named:
+                        dataseg.create_dataset(curve.channels[j],data=curve.data[:,j])                                        
         hd.close()
