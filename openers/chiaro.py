@@ -142,7 +142,6 @@ class opener(skeleton.prepare_opener):
         f.close()
 
     def createSegments(self,mode='safe'):
-        print(self.curve.parameters)
         nodi = getNodes(self.curve,mode)
         for i in range(len(nodi) - 1):
             if (nodi[i+1]-nodi[i])<2:

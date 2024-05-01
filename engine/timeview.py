@@ -17,7 +17,7 @@ class PopupWindow(QDialog):
         self.options = QComboBox()
         self.options.addItem('Safe mode')
         self.options.addItem('Euristic mode')
-        self.options.addItem('Shift mode')
+        #self.options.addItem('Shift mode')
         self.options.currentTextChanged.connect(self.reload)
         commands.addWidget(self.options)
         commands.addItem(QSpacerItem(20, 20,  QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
