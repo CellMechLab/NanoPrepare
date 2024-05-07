@@ -34,7 +34,7 @@ class saveJSON(object):
 
         cv = emptyCurve()
         cv['filename']=self.filename.name                
-        cv['tip']['radius']=radius*1e-9
+        cv['tip']['radius']=radius
         cv['tip']['angle']=radius
         cv['tip']['geometry']=geometry
         cv['spring_constant']=spring

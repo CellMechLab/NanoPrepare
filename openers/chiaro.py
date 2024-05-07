@@ -159,13 +159,22 @@ class opener(skeleton.prepare_opener):
             if riga.startswith('Profile') or riga.startswith('Piezo Indentation'):
                 break
             if riga.startswith('X-position'):
-                self.curve.parameters['x']=float(riga.strip().split('\t')[1])
+                coeff = 1.0
+                if 'um' in riga or 'µm' in riga:
+                    coeff = 1e-6
+                self.curve.parameters['x']=coeff*float(riga.strip().split('\t')[1])
             elif riga.startswith('Y-position'):
-                self.curve.parameters['y']=float(riga.strip().split('\t')[1])
+                coeff = 1.0
+                if 'um' in riga or 'µm' in riga:
+                    coeff = 1e-6
+                self.curve.parameters['y']=coeff*float(riga.strip().split('\t')[1])
             elif riga.startswith('k (N/m)'):
                 self.curve.parameters['k']=float(riga.strip().split('\t')[1])
             elif riga.startswith('Tip radius'):
-                self.curve.tip['value']=float(riga.strip().split('\t')[1])
+                coeff = 1.0
+                if 'um' in riga or 'µm' in riga:
+                    coeff = 1e-6
+                self.curve.tip['value']=coeff*float(riga.strip().split('\t')[1])
             elif riga.startswith('Control mode'):
                 self.curve.parameters['control']=riga.strip().split(':')[1].strip()
             elif riga.startswith('Measurement'):
