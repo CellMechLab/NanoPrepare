@@ -19,7 +19,7 @@ class Screener(boxPanel):
         # This function is required and describes the form to be created in the user interface 
         # The last value is the initial value of the field; currently 3 types are supported: int, float and combo
         # Parameters can be used as seeds or proper parameters (e.g. indentation depth ?) 
-        self.addParameter('Threshold',FloatSpinBox(value=1, name='threshold', label='Force threshold [nN]',min=-1,max=100))
+        self.addParameter('Threshold',FloatSpinBox(value=1, name='threshold', label='Force threshold [nN]',min=-1,max=1000))
         
     def calculate(self, x,y):
         # This function gets the current x and y and returns whether to keep the curve or not.

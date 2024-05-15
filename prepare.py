@@ -215,11 +215,10 @@ class engine(object):
         self.ui.box_cp.setLayout(layout)
         self.calc()
         
-    def calc(self):
-        for i in range(self.model.rowCount()):
-            row = self.model.itemFromIndex(self.model.index(i,0))
-            if self._screen.do(*row.line.getData()) is False:
-                row.setCheckState(Qt.CheckState.Unchecked)
+    def calc(self,*args):
+        for item in self.model.haystack:
+            if self._screen.do(*item.line.getData()) is False:
+                item.setCheckState(Qt.CheckState.Unchecked)
 
 ## popup to view curves as a function of time and select segmentation mode ##
 
@@ -257,11 +256,15 @@ class engine(object):
     def getRow(self,rowindex):
         return self.model.itemFromIndex(self.model.index(rowindex,0))
     
-    def changeDetected(self,item): #manages changes to the view ?       
-        print( item.text() )
-        print( item.column(),item.row() )        
-        for i in range(4):
-            print(item.parent().child(item.row(),i).text())
+    def changeDetected(self,item): #manages changes to the view ?               
+        if isinstance(item,MVcurve) and item.line is not None:
+            if item.checkState() == Qt.CheckState.Checked:
+                color = 'green'
+            else:
+                color='red'
+            item.line.setPen(color=color,width=1)
+        #for i in range(4):
+        #    print(item.parent().child(item.row(),i).text())
         
 
 def main():
