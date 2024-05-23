@@ -249,6 +249,7 @@ class engine(object):
                     obj.curve.tip['parameter']='Angle'
                     obj.curve.tip['unit']='deg'
                 obj.curve.tip['value']=value
+                #massimo
                 
                 obj.parent().child(obj.row(),2).setText(geometry)
                 obj.parent().child(obj.row(),3).setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")            
