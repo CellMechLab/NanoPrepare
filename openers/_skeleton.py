@@ -47,6 +47,9 @@ class curve(object):
         self.isDeflection=False        
         self.channels=[]
         self.segments=[]
+        
+    def parse(self):
+        return
 
     def attach(self,data):
         s = segment(self)

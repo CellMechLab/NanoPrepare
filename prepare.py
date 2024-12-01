@@ -40,7 +40,7 @@ class engine(object):
         
     def toggle_button_clicked(self):
         if self.ui.toggle_button.isChecked():
-            self.ui.toggle_button.setText("Nanosurf")
+            self.ui.toggle_button.setText("NHF")
             self.model.setProxy('Nanosurf')
             self.ui.toggle_button.setStyleSheet('color: red;')
             self.ui.timeview.setEnabled(False)

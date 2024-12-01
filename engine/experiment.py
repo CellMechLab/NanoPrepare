@@ -37,8 +37,10 @@ class MVbase(object):
                     addItems.append(QStandardItem(str(len(row.curve.segments))))
                     self.appendRow([row,*addItems])
                 else:
-                    for number in totest:
-                        row = MVcurve(Path(filename),self.proxy,number)
+                    for number in range(totest.number-1): # range(totest.number-1):
+                        if (number%50)==0:
+                            print(number)
+                        row = MVcurve(Path(filename),self.proxy,number+1)
                         addItems = [QStandardItem(str(row.curve.parameters['k']))]
                         addItems.append(QStandardItem(str(row.curve.tip['geometry'])))
                         addItems.append(QStandardItem(row.curve.tip['parameter'] +': '+ str(row.curve.tip['value'])+' '+row.curve.tip['unit']))
@@ -46,6 +48,7 @@ class MVbase(object):
                         self.appendRow([row,*addItems])
                 return True
             except NotValidFile:
+                raise
                 return False
         
 
@@ -62,27 +65,28 @@ class MVcurve(QStandardItem,MVbase):
                 self.attach(ddir,ddir.is_dir())
         else:
             self.isCurve = True
-            self.createCurve(filename)
+            self.createCurve(filename,number)
 
-    def createCurve(self,path):        
+    def createCurve(self,path,number=False):        
         if self.proxy.EXT != '*' and path.suffix != self.proxy.EXT :
             raise NotValidFile('Extension not valid')
-        chiaro = self.proxy.opener(path)
-        if chiaro.check() is False:
+        manufacturer = self.proxy.opener(path)
+        if manufacturer.check() is False:
             raise NotValidFile('This does not look like an Optics11 file')   
         self.setCheckable(True)
         self.setCheckState( Qt.CheckState.Checked )        
-        self.curve = chiaro.open()    
+        self.curve = manufacturer.open(number)    
             
                 
 
 class MVexperiment(QStandardItemModel,MVbase):
-    def __init__(self,root=None):        
+    def __init__(self,root=None,proxy='Optics11'):        
         super().__init__()
         self.setHorizontalHeaderLabels(['Filename','k','Tip','Size','Segments'])
         self.proxy = None
-        self.setProxy()
+        self.setProxy(proxy)
         self.haystack=[]
+        self.number = 1
         if root is not None:
             self.createTree(root)
             
@@ -101,9 +105,9 @@ class MVexperiment(QStandardItemModel,MVbase):
         if mode == 'Optics11':
             import openers.chiaro as O11    
             self.proxy = O11
-        elif mode=='AFM':
-            import openers.afm as afm    
-            self.proxy = afm
+        elif mode=='Nanosurf':
+            import openers.nhf as nhf    
+            self.proxy = nhf
 
     def createTree(self,root):
         root = Path(root) 

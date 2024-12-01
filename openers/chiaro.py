@@ -59,7 +59,7 @@ class opener(skeleton.prepare_opener):
         f.close()
         return riga.startswith('Date')
 
-    def open(self):
+    def open(self,number=False):
         
         for pars in ['x','y','k']:
             self.curve.parameters[pars]=0
