@@ -73,7 +73,7 @@ class engine(object):
         if fname == '' or fname is None or fname[0] == '':
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        self.model.createTree(fname)
+        self.model.createTree(fname,self.ui.limitOpen.isChecked())
         self.ui.wdir.setText(str(fname))
         self.setCurves()
         self.resizeView()
@@ -86,7 +86,7 @@ class engine(object):
             return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         for fname in filename[0]:
-            self.model.createTree(fname)
+            self.model.createTree(fname,limit=self.ui.limitOpen.isChecked())
         fname = Path(fname)
         self.ui.wdir.setText(str(fname.parents[0]))
         self.setCurves()

@@ -22,7 +22,7 @@ class MVbase(object):
                     haystack.append(h)
         return haystack
         
-    def attach(self,filename,isdir=False):
+    def attach(self,filename,isdir=False,limit=False):
         if isdir is True:
             row = MVcurve(filename,self.proxy)                    
             self.appendRow([row,*emptyItems])
@@ -30,15 +30,19 @@ class MVbase(object):
             try:     
                 totest = self.proxy.opener(Path(filename))
                 if totest.isMultiple() is False:
-                    row = MVcurve(Path(filename),self.proxy)
+                    row = MVcurve(Path(filename),self.proxy,limit)
                     addItems = [QStandardItem(str(row.curve.parameters['k']))]
                     addItems.append(QStandardItem(str(row.curve.tip['geometry'])))
                     addItems.append(QStandardItem(row.curve.tip['parameter'] +': '+ str(row.curve.tip['value'])+' '+row.curve.tip['unit']))
                     addItems.append(QStandardItem(str(len(row.curve.segments))))
                     self.appendRow([row,*addItems])
                 else:
-                    for number in range(totest.number-1): # range(totest.number-1):
-                        if (number%10)==0:
+                    if limit is False:
+                        themax = totest.number
+                    else:
+                        themax = 100
+                    for number in range(themax): # range(totest.number-1):
+                        if (number%25)==0:
                             print(number)
                         row = MVcurve(Path(filename),self.proxy,number+1)
                         addItems = [QStandardItem(str(row.curve.parameters['k']))]
@@ -53,7 +57,7 @@ class MVbase(object):
         
 
 class MVcurve(QStandardItem,MVbase):
-    def __init__(self,filename,proxy,number=False):    
+    def __init__(self,filename,proxy,number=False,limit=False):    
         filename = Path(filename)    
         super().__init__(filename.name)
         self.isCurve = False
@@ -62,7 +66,7 @@ class MVcurve(QStandardItem,MVbase):
         self.line=None
         if filename.is_dir():
             for ddir in filename.iterdir():
-                self.attach(ddir,ddir.is_dir())
+                self.attach(ddir,ddir.is_dir(),limit)
         else:
             self.isCurve = True
             self.createCurve(filename,number)
@@ -109,10 +113,10 @@ class MVexperiment(QStandardItemModel,MVbase):
             import openers.nhf as nhf    
             self.proxy = nhf
 
-    def createTree(self,root):
+    def createTree(self,root,limit=False):
         root = Path(root) 
         if root.is_file():
-            self.attach(root)
+            self.attach(root,limit=limit)
         else:    
             for ddir in Path(root).iterdir():
-                self.attach(ddir,ddir.is_dir())        
+                self.attach(ddir,ddir.is_dir(),limit)        

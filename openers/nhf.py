@@ -5,6 +5,18 @@ import h5py
 NAME = 'NHF Nanosurf basic opener'
 EXT = '.nhf'
 
+def find_dataset_by_name(segment, name):
+    for dataset_key in segment:
+        dataset = segment[dataset_key]
+        if ('signal_name' in dataset.attrs) and (dataset.attrs['signal_name'] == name):
+            return np.array(dataset),dataset.attrs
+      
+def find_block_size_dataset(segment):
+    for dataset_key in segment:
+        dataset = segment[dataset_key]
+        if 'dataset_block_size_id' in dataset.attrs:
+            return dataset
+
 class opener(skeleton.prepare_opener):
     def isMultiple(self):
         data=[]
@@ -16,7 +28,7 @@ class opener(skeleton.prepare_opener):
         self.number = x*y
         return True
 
-    def open(self,number=False):
+    def open(self,number=False,limit=False):
 
         with h5py.File(self.filename, 'r') as f:
             general_fw = f['/group_0000/']
@@ -26,18 +38,17 @@ class opener(skeleton.prepare_opener):
             
             subgroup = f['/group_0000/subgroup_0000/']
             attributes = {key: subgroup.attrs[key] for key in subgroup.attrs}
-            T = f['/group_0000/subgroup_0000/dataset_0011'][:]
-            Zdataset = f['/group_0000/subgroup_0000/dataset_0004']
-            Z = Zdataset[:]*-1
-            coeZ = (Zdataset.attrs['signal_calibration_max']-Zdataset.attrs['signal_calibration_min'])/(Zdataset.attrs['signal_minmax'][1]-Zdataset.attrs['signal_minmax'][0])
-            Ddataset = f['/group_0000/subgroup_0000/dataset_0003']
-            D = Ddataset[:]
-            coeDV = (Ddataset.attrs['signal_calibration_max']-Ddataset.attrs['signal_calibration_min'])/(Ddataset.attrs['signal_minmax'][1]-Ddataset.attrs['signal_minmax'][0])
-            stop = f['/group_0000/subgroup_0000/dataset_0001']
             
-            istart = np.sum(stop[:number-1])
-            #istart = istart+2 if istart>0 else 0            
-            iend = istart+stop[number-1]
+            T,Tattr = find_dataset_by_name(subgroup, "Time")
+            D,Dattr = find_dataset_by_name(subgroup, "Deflection")
+            Z,Zattr = find_dataset_by_name(subgroup, "Position Z")
+            block_sizes = np.array(find_block_size_dataset(subgroup), dtype=int)
+            
+            coeZ = (Zattr['signal_calibration_max']-Zattr['signal_calibration_min'])/(Zattr['signal_minmax'][1]-Zattr['signal_minmax'][0])
+            coeDV = (Dattr['signal_calibration_max']-Dattr['signal_calibration_min'])/(Dattr['signal_minmax'][1]-Dattr['signal_minmax'][0])
+            
+            istart = np.sum(block_sizes[:number-1])
+            iend = istart+block_sizes[number-1]
             
             k = gen_att['spm_probe_calibration_spring_constant']
             self.curve.parameters['k'] = k
@@ -45,8 +56,6 @@ class opener(skeleton.prepare_opener):
             self.curve.parameters['x'] = xdata[number]
             self.curve.parameters['y'] = ydata[number]            
             coeD = coeDV*invols
-        
-        
         
         data = np.transpose(np.vstack([dset[istart:iend] for dset in [T,Z*coeZ,D*coeD]]))
         
