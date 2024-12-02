@@ -38,7 +38,7 @@ class MVbase(object):
                     self.appendRow([row,*addItems])
                 else:
                     for number in range(totest.number-1): # range(totest.number-1):
-                        if (number%50)==0:
+                        if (number%10)==0:
                             print(number)
                         row = MVcurve(Path(filename),self.proxy,number+1)
                         addItems = [QStandardItem(str(row.curve.parameters['k']))]
