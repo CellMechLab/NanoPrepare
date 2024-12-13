@@ -251,8 +251,8 @@ class engine(object):
                 obj.curve.tip['value']=value
                 #massimo
                 
-                obj.parent().child(obj.row(),2).setText(geometry)
-                obj.parent().child(obj.row(),3).setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")            
+                #obj.parent().child(obj.row(),2).setText(geometry)
+                #obj.parent().child(obj.row(),3).setText(f"{obj.curve.tip['parameter']}: {str(value)} {obj.curve.tip['unit']}")            
     
     def getRow(self,rowindex):
         return self.model.itemFromIndex(self.model.index(rowindex,0))
