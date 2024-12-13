@@ -242,13 +242,15 @@ class engine(object):
             
             for obj in self.model.haystack:
                 obj.curve.tip['geometry']=geometry
+                par = 1
                 if geometry=='sphere' or geometry=='cylinder':
                     obj.curve.tip['parameter']='Radius'
-                    obj.curve.tip['unit']='um'
+                    obj.curve.tip['unit']='m'
+                    par = 1e-6
                 else:
                     obj.curve.tip['parameter']='Angle'
                     obj.curve.tip['unit']='deg'
-                obj.curve.tip['value']=value
+                obj.curve.tip['value']=value*par
                 #massimo
                 
                 #obj.parent().child(obj.row(),2).setText(geometry)
