@@ -67,17 +67,20 @@ def open(filename,limit = False):
         
     return curves,coordinates,k
 
-def save(filename,curves,coordinates,k,radius):
+def save(filename,curves,coordinates,k,radius,limit=False):
     hd = h5py.File(filename,'w')
     hd.attrs['selectedSegment']=0
     hd.attrs['curves']=len(curves)
     i=0
     ncurves = len(curves)
+    if limit is not False:
+        ncurves = limit
     # Create a progress dialog
     progress_dialog = QProgressDialog(f"Saving {ncurves} curves...", "Cancel", 0, ncurves)
     progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
     progress_dialog.setMinimumDuration(0)
-    for curve in curves:
+    for i in range(ncurves):
+        curve = curves[i]
         name = 'curve'+str(i)        
         cv = hd.create_group(name)
         cv.attrs['filename']=str(filename)
@@ -91,8 +94,6 @@ def save(filename,curves,coordinates,k,radius):
         tip.attrs['parameter']='Radius'
         tip.attrs['unit']='m'
         tip.attrs['value']=radius*1e-6
-        
-        i+=1
         dataseg = cv.create_group(f'segment0')
         dataseg.attrs['mode']=''
         names = ['Time','Z','Force']

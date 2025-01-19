@@ -84,6 +84,8 @@ def main():
         print("No .hdf5 file selected.")
         return
 
+    hdf5_file_100 = os.path.join(os.path.dirname(hdf5_file), os.path.splitext(os.path.basename(hdf5_file))[0] + "_100.hdf5")
+    bg.save( hdf5_file_100,curves,coordinates,k,radius,limit=100)
     bg.save( hdf5_file,curves,coordinates,k,radius)
 
     print(f"NHF File: {nhf_file}")
