@@ -50,9 +50,9 @@ class MVbase(object):
                         addItems.append(QStandardItem(row.curve.tip['parameter'] +': '+ str(row.curve.tip['value'])+' '+row.curve.tip['unit']))
                         addItems.append(QStandardItem(str(len(row.curve.segments))))
                         self.appendRow([row,*addItems])
-                return True
+                return True            
             except NotValidFile:
-                raise
+                print(f'{filename} is not a valid file')
                 return False
         
 
