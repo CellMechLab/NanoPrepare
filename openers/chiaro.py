@@ -4,6 +4,7 @@ import numpy as np
 
 NAME = 'Chiaro Optics11'
 EXT = '.txt'
+ENCODING = 'latin1'
 
 def cross(x1, x2, th, dth):
     th1 = th+dth
@@ -54,7 +55,7 @@ def getNodes(curve,mode='safe',value=30*1e-9):
 
 class opener(skeleton.prepare_opener):
     def check(self):
-        f = open(self.filename)
+        f = open(self.filename,encoding=ENCODING)
         riga = f.readline()
         f.close()
         return riga.startswith('Date')
@@ -83,7 +84,7 @@ class opener(skeleton.prepare_opener):
         return self.curve
     
     def getProtocols(self,mode='all'):
-        f = open(self.filename)
+        f = open(self.filename,encoding=ENCODING)
         if mode=='all':
             protocols=[]
             next = False
@@ -114,7 +115,7 @@ class opener(skeleton.prepare_opener):
         f.close()
         
     def getData(self):
-        f = open(self.filename)
+        f = open(self.filename,encoding=ENCODING)
         for riga in f:
             if riga.startswith('Time (s)'):
                 self.curve.channels = riga.strip().split('\t')
@@ -152,7 +153,7 @@ class opener(skeleton.prepare_opener):
         #specific parameters
         self.curve.parameters['SMDuration']=0.0
 
-        f = open(self.filename)
+        f = open(self.filename,encoding=ENCODING)
         for riga in f:
             if riga.startswith('Time (s)'):
                 break
